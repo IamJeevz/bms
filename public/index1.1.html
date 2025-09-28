@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BookMyShow City Selector</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    input, select { padding: 8px; font-size: 16px; margin-top: 10px; }
+    #output { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>🎟️ Select Your City</h1>
+
+  <!-- Live search input -->
+  <input type="text" id="searchInput" placeholder="Search city...">
+
+  <!-- City dropdown -->
+  <br><br>
+  <label for="citySelect">Choose a city:</label>
+  <select id="citySelect">
+    <option value="">-- Select City --</option>
+  </select>
+
+  <div id="output"></div>
+
+  <script>
+    let allCities = []; // store all cities from backend
+
+    async function loadCities() {
+      try {
+        const res = await fetch('/api/cities');
+        allCities = await res.json();
+        populateDropdown(allCities);
+      } catch (err) {
+        console.error('Error loading cities:', err);
+      }
+    }
+
+    function populateDropdown(cities) {
+      const select = document.getElementById('citySelect');
+      select.innerHTML = '<option value="">-- Select City --</option>'; // reset
+
+      cities.forEach(city => {
+        const option = document.createElement('option');
+        option.value = city.slug;
+        option.textContent = city.name;
+        select.appendChild(option);
+      });
+    }
+
+    // 🔎 Live search as user types
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const filtered = allCities.filter(city => city.name.toLowerCase().includes(query));
+      populateDropdown(filtered);
+    });
+
+    // Dropdown change event
+    document.getElementById('citySelect').addEventListener('change', function() {
+      const selectedSlug = this.value;
+      const selectedName = this.options[this.selectedIndex].text;
+      document.getElementById('output').textContent =
+        selectedSlug
+          ? `✅ Selected: ${selectedName} (Slug: ${selectedSlug})`
+          : '';
+    });
+
+    loadCities();
+  </script>
+</body>
+</html>

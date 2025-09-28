@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BookMyShow City Selector</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    select { padding: 8px; font-size: 16px; }
+    #output { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>🎟️ Select Your City</h1>
+
+  <label for="citySelect">Choose a city:</label>
+  <select id="citySelect">
+    <option value="">-- Select City --</option>
+  </select>
+
+  <div id="output"></div>
+
+  <script>
+    async function loadCities() {
+      try {
+        const res = await fetch('/api/cities');
+        const cities = await res.json();
+        
+        const select = document.getElementById('citySelect');
+
+        cities.forEach(city => {
+          const option = document.createElement('option');
+          option.value = city.slug;
+          option.textContent = city.name;
+          select.appendChild(option);
+        });
+
+        select.addEventListener('change', () => {
+          const selectedSlug = select.value;
+          const selectedName = select.options[select.selectedIndex].text;
+          document.getElementById('output').textContent =
+            `✅ Selected: ${selectedName} (Slug: ${selectedSlug})`;
+        });
+      } catch (err) {
+        console.error('Error loading cities:', err);
+      }
+    }
+
+    loadCities();
+  </script>
+</body>
+</html>

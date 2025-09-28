@@ -5,10 +5,10 @@ const path = require('path');
 const app = express();
 const PORT = 3000;
 
-// Serve static files (frontend)
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 
-// API endpoint to fetch cities
+// API to fetch cities (your existing code)
 app.get('/api/cities', async (req, res) => {
   try {
     const response = await axios.get(
@@ -19,7 +19,7 @@ app.get('/api/cities', async (req, res) => {
           'Accept': 'application/json, text/plain, */*',
           'Referer': 'https://in.bookmyshow.com/',
           'Origin': 'https://in.bookmyshow.com',
-		  'sec-ch-ua-platform': 'Windows',
+          'sec-ch-ua-platform': 'Windows',
         }
       }
     );
@@ -27,43 +27,26 @@ app.get('/api/cities', async (req, res) => {
     const data = response.data.BookMyShow;
     let cities = [];
 
-    // TopCities
-    data.TopCities.forEach(city => {
+    const processCity = city => {
       if (city.SubRegions && city.SubRegions.length > 0) {
         city.SubRegions.forEach(sub => {
           cities.push({
             name: sub.SubRegionName,
             slug: sub.SubRegionSlug,
-			regioncode: sub.SubRegionCode
+            regioncode: sub.SubRegionCode
           });
         });
       } else {
         cities.push({
           name: city.RegionName,
           slug: city.RegionSlug,
-		  regioncode: city.RegionCode
+          regioncode: city.RegionCode
         });
       }
-    });
+    };
 
-    // OtherCities
-    data.OtherCities.forEach(city => {
-      if (city.SubRegions && city.SubRegions.length > 0) {
-        city.SubRegions.forEach(sub => {
-          cities.push({
-            name: sub.SubRegionName,
-            slug: sub.SubRegionSlug,
-			regioncode: sub.SubRegionCode
-          });
-        });
-      } else {
-        cities.push({
-          name: city.RegionName,
-          slug: city.RegionSlug,
-		  regioncode: city.RegionCode
-        });
-      }
-    });
+    data.TopCities.forEach(processCity);
+    data.OtherCities.forEach(processCity);
 
     res.json(cities);
   } catch (error) {
@@ -72,7 +55,62 @@ app.get('/api/cities', async (req, res) => {
   }
 });
 
+// New API to fetch movies for selected city
+app.get('/api/movies', async (req, res) => {
+  const { slug, regioncode } = req.query;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  if (!slug || !regioncode) {
+    return res.status(400).json({ error: 'Missing slug or regioncode' });
+  }
+
+  // Construct URLs
+  const currentUrl = `https://in.bookmyshow.com/api/explore/v1/discover/movies-${slug}?region=${regioncode}`;
+  const upcomingUrl = `https://in.bookmyshow.com/api/explore/v1/discover/upcoming-movies-${slug}?region=${regioncode}`;
+
+  // ✅ Print URLs for debugging
+  console.log("📌 Current movies URL:", currentUrl);
+  console.log("📌 Upcoming movies URL:", upcomingUrl);
+
+  try {
+    // Fetch current movies
+    const currentMovies = await axios.get(currentUrl, {
+      headers: {
+        'x-app-code': 'WEB',
+        'x-bms-id': '1.250796596.1759067863599',
+        'x-platform-code': 'DESKTOP-WEB',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept': 'application/json, text/plain, */*',
+        'Referer': 'https://in.bookmyshow.com/',
+        'Origin': 'https://in.bookmyshow.com',
+        'sec-ch-ua-platform': 'Windows'
+      }
+    });
+
+    // Fetch upcoming movies
+    const upcomingMovies = await axios.get(upcomingUrl, {
+      headers: {
+        'x-app-code': 'WEB',
+        'x-bms-id': '1.250796596.1759067863599',
+        'x-platform-code': 'DESKTOP-WEB',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept': 'application/json, text/plain, */*',
+        'Referer': 'https://in.bookmyshow.com/',
+        'Origin': 'https://in.bookmyshow.com',
+        'sec-ch-ua-platform': 'Windows'
+      }
+    });
+
+    res.json({
+      current: currentMovies.data,
+      upcoming: upcomingMovies.data
+    });
+
+  } catch (error) {
+    console.error('Error fetching movies:', error.response?.status, error.message);
+    res.status(500).json({ error: 'Failed to fetch movies' });
+  }
 });
+
+
+
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));

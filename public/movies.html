@@ -1,200 +1,242 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Movies</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root{
-      --card-width: 220px;
-      --card-img-h: 330px;
-      --gap: 16px;
-    }
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	  <meta charset="UTF-8" />
+	  <title>Movies</title>
+	  <meta name="viewport" content="width=device-width, initial-scale=1" />
+	  <style>
+		:root{
+		  --card-width: 220px;
+		  --card-img-h: 330px;
+		  --gap: 16px;
+		}
 
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f5f6fa;
-      color: #222;
-    }
-    h2 { margin-bottom: 12px; }
-    h3 { margin: 20px 0 10px; }
+		body {
+		  font-family: Arial, sans-serif;
+		  margin: 20px;
+		  background: #f5f6fa;
+		  color: #222;
+		}
+		h2 { margin-bottom: 12px; }
+		h3 { margin: 20px 0 10px; }
 
-    .movie-section {
-      margin-bottom: 28px;
-    }
+		/* Search input */
+		#movieSearch {
+		  width: 100%;
+		  max-width: 400px;
+		  padding: 10px 12px;
+		  font-size: 16px;
+		  margin-bottom: 20px;
+		  border: 1px solid #ccc;
+		  border-radius: 6px;
+		  outline: none;
+		  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		  transition: border 0.2s;
+		}
+		#movieSearch:focus { border-color: #007bff; }
 
-    .movie-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr));
-      gap: var(--gap);
-      align-items: start;
-    }
+		.movie-section {
+		  margin-bottom: 28px;
+		}
 
-    .movie-card {
-      background: #fff;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
-      display: flex;
-      flex-direction: column; /* important */
-      height: 100%; /* let each cell stretch */
-    }
+		.movie-grid {
+		  display: grid;
+		  grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr));
+		  gap: var(--gap);
+		  align-items: start;
+		}
 
-    .movie-card img {
-      width: 100%;
-      height: var(--card-img-h);
-      object-fit: cover;
-      display: block;
-      background: #ddd;
-    }
+		.movie-card {
+		  background: #fff;
+		  border-radius: 8px;
+		  overflow: hidden;
+		  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+		  display: flex;
+		  flex-direction: column;
+		  height: 100%;
+		}
 
-    .card-body {
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      flex: 1; /* allow body to grow so cta-wrap can be pushed to bottom */
-    }
+		.movie-card img {
+		  width: 100%;
+		  height: var(--card-img-h);
+		  object-fit: cover;
+		  display: block;
+		  background: #ddd;
+		}
 
-    .movie-title {
-      font-size: 15px;
-      font-weight: 600;
-      line-height: 1.2;
-      color: #111;
-      /* allow multiple lines; no fixed height required */
-    }
+		.card-body {
+		  padding: 12px;
+		  display: flex;
+		  flex-direction: column;
+		  gap: 8px;
+		  flex: 1;
+		}
 
-    .movie-sub {
-      font-size: 13px;
-      color: #666;
-      min-height: 1em;
-      margin-top: 2px;
-    }
+		.movie-title {
+		  font-size: 15px;
+		  font-weight: 600;
+		  line-height: 1.2;
+		  color: #111;
+		}
 
-    .cta-wrap {
-      margin-top: auto; /* <-- keeps button aligned at bottom */
-      display: flex;
-      justify-content: center;
-    }
+		.movie-sub {
+		  font-size: 13px;
+		  color: #666;
+		  min-height: 1em;
+		  margin-top: 2px;
+		}
 
-    .book-btn {
-      display: inline-block;
-      padding: 8px 12px;
-      background: #ff3b3b;
-      color: #fff;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 14px;
-      transition: transform .12s ease, box-shadow .12s ease;
-      box-shadow: 0 4px 10px rgba(255,59,59,0.12);
-      white-space: nowrap;
-    }
-    .book-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255,59,59,0.16); }
+		.cta-wrap {
+		  margin-top: auto;
+		  display: flex;
+		  justify-content: center;
+		}
 
-    /* Responsive tweaks */
-    @media (max-width: 800px) {
-      :root{ --card-width: 160px; --card-img-h: 240px; }
-    }
-  </style>
-</head>
-<body>
-  <h2>🎬 Movies</h2>
-  <div id="movies"></div>
+		.book-btn {
+		  display: inline-block;
+		  padding: 8px 12px;
+		  background: #ff3b3b;
+		  color: #fff;
+		  border-radius: 6px;
+		  text-decoration: none;
+		  font-weight: 600;
+		  font-size: 14px;
+		  transition: transform .12s ease, box-shadow .12s ease;
+		  box-shadow: 0 4px 10px rgba(255,59,59,0.12);
+		  white-space: nowrap;
+		}
+		.book-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255,59,59,0.16); }
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const slug = params.get("slug");
-    const regioncode = params.get("regioncode");
+		@media (max-width: 800px) {
+		  :root{ --card-width: 160px; --card-img-h: 240px; }
+		}
+	  </style>
+	</head>
+	<body>
+	  <h2>🎬 Movies</h2>
 
-    function extractTitleFromCard(card) {
-      // same robust extraction as before (first text component that is type 'text')
-      let movieTitle = "";
-      if (Array.isArray(card.text)) {
-        for (const block of card.text) {
-          if (Array.isArray(block.components)) {
-            for (const comp of block.components) {
-              if (comp.type === "text" && comp.text) {
-                movieTitle = comp.text;
-                break;
-              }
-            }
-          }
-          if (movieTitle) break;
-        }
-      }
-      return movieTitle || "Untitled";
-    }
+	  <!-- Search input -->
+	  <input type="text" id="movieSearch" placeholder="Search movies..." />
 
-    async function loadMovies() {
-      try {
-        const res = await fetch(`/api/movies?slug=${encodeURIComponent(slug)}&regioncode=${encodeURIComponent(regioncode)}`);
-        const data = await res.json();
-        const container = document.getElementById("movies");
-        container.innerHTML = "";
+	  <div id="movies"></div>
 
-        function renderSection(title, movieData) {
-          const section = document.createElement("div");
-          section.className = "movie-section";
-          section.innerHTML = `<h3>${title}</h3>`;
+	  <script>
+		const params = new URLSearchParams(window.location.search);
+		const slug = params.get("slug");
+		const regioncode = params.get("regioncode");
 
-          const grid = document.createElement("div");
-          grid.className = "movie-grid";
+		let allMovieCards = []; // will store references to all cards
 
-          const listings = movieData && movieData.listings ? movieData.listings : [];
-          listings.forEach(listing => {
-            if (!Array.isArray(listing.cards)) return;
-            listing.cards.forEach(card => {
-              if (!(card && card.ctaUrl && card.ctaUrl.includes("/ET"))) return;
+		function extractTitleFromCard(card) {
+		  let movieTitle = "";
+		  if (Array.isArray(card.text)) {
+			for (const block of card.text) {
+			  if (Array.isArray(block.components)) {
+				for (const comp of block.components) {
+				  if (comp.type === "text" && comp.text) {
+					movieTitle = comp.text;
+					break;
+				  }
+				}
+			  }
+			  if (movieTitle) break;
+			}
+		  }
+		  return movieTitle || "Untitled";
+		}
 
-              const movieTitle = extractTitleFromCard(card);
-              const poster = (card.image && card.image.url) ? card.image.url : "";
-              const ctaUrl = card.ctaUrl;
+		async function loadMovies() {
+		  try {
+			const res = await fetch(`/api/movies?slug=${encodeURIComponent(slug)}&regioncode=${encodeURIComponent(regioncode)}`);
+			const data = await res.json();
+			const container = document.getElementById("movies");
+			container.innerHTML = "";
 
-              const cardEl = document.createElement("div");
-              cardEl.className = "movie-card";
-              cardEl.innerHTML = `
-                <img src="${poster}" alt="${escapeHtml(movieTitle)}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'400\\' height=\\'600\\'><rect width=\\'100%\\' height=\\'100%\\' fill=\\'%23ddd\\'/><text x=\\'50%\\' y=\\'50%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' font-family=\\'Arial\\' font-size=\\'20\\' fill=\\'%23666\\'>No Image</text></svg>'" />
-                <div class="card-body">
-                  <div class="movie-title">${escapeHtml(movieTitle)}</div>
-                  <div class="movie-sub">${escapeHtml(card.subText || "")}</div>
-                  <div class="cta-wrap">
-                    <a class="book-btn" href="${ctaUrl}" target="_blank" rel="noopener noreferrer">Book Now</a>
-                  </div>
-                </div>
-              `;
-              grid.appendChild(cardEl);
-            });
-          });
+			allMovieCards = []; // reset
 
-          section.appendChild(grid);
-          container.appendChild(section);
-        }
+			function renderSection(title, movieData) {
+			  const section = document.createElement("div");
+			  section.className = "movie-section";
+			  section.innerHTML = `<h3>${title}</h3>`;
 
-        if (data.current) renderSection("Now Showing", data.current);
-        if (data.upcoming) renderSection("Upcoming Movies", data.upcoming);
-        if ((!data.current || (data.current.listings||[]).length === 0) && (!data.upcoming || (data.upcoming.listings||[]).length === 0)) {
-          container.innerHTML = "<p>No movies found.</p>";
-        }
-      } catch (err) {
-        console.error("Error loading movies:", err);
-        document.getElementById("movies").textContent = "⚠️ Failed to load movies.";
-      }
-    }
+			  const grid = document.createElement("div");
+			  grid.className = "movie-grid";
 
-    // small helper to guard text injection
-    function escapeHtml(str) {
-      if (!str) return "";
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
+			  const listings = movieData?.listings || [];
+			  listings.forEach(listing => {
+				if (!Array.isArray(listing.cards)) return;
+				listing.cards.forEach(card => {
+				  if (!(card?.ctaUrl && card.ctaUrl.includes("/ET"))) return;
 
-    loadMovies();
-  </script>
-</body>
-</html>
+				  const movieTitle = extractTitleFromCard(card);
+				  const poster = card.image?.url || "";
+				  const ctaUrl = card.ctaUrl;
+
+				  const cardEl = document.createElement("div");
+				  cardEl.className = "movie-card";
+				  cardEl.dataset.title = movieTitle.toLowerCase();
+				  cardEl.innerHTML = `
+					<img src="${poster}" alt="${escapeHtml(movieTitle)}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'400\\' height=\\'600\\'><rect width=\\'100%\\' height=\\'100%\\' fill=\\'%23ddd\\'/><text x=\\'50%\\' y=\\'50%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' font-family=\\'Arial\\' font-size=\\'20\\' fill=\\'%23666\\'>No Image</text></svg>'" />
+					<div class="card-body">
+					  <div class="movie-title">${escapeHtml(movieTitle)}</div>
+					  <div class="movie-sub">${escapeHtml(card.subText || "")}</div>
+
+	<div class="cta-wrap">
+	  <a class="book-btn" href="setup-alert.html" 
+	   onclick='localStorage.setItem("selectedMovie", JSON.stringify({
+		 title: "${escapeHtml(movieTitle)}",
+		 img: "${poster}",
+		 ctaUrl: "${ctaUrl}"
+	   }))'>
+	  Setup Alert
+	</a>
+
+	</div>
+
+
+					</div>
+				  `;
+				  grid.appendChild(cardEl);
+				  allMovieCards.push(cardEl); // save reference for search
+				});
+			  });
+
+			  section.appendChild(grid);
+			  container.appendChild(section);
+			}
+
+			if (data.current) renderSection("Now Showing", data.current);
+			if (data.upcoming) renderSection("Upcoming Movies", data.upcoming);
+			if ((!data.current?.listings?.length) && (!data.upcoming?.listings?.length)) {
+			  container.innerHTML = "<p>No movies found.</p>";
+			}
+
+		  } catch (err) {
+			console.error("Error loading movies:", err);
+			document.getElementById("movies").textContent = "⚠️ Failed to load movies.";
+		  }
+		}
+
+		function escapeHtml(str) {
+		  if (!str) return "";
+		  return String(str)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+		}
+
+		// 🔹 Movie search filter
+		const searchInput = document.getElementById("movieSearch");
+		searchInput.addEventListener("input", () => {
+		  const query = searchInput.value.trim().toLowerCase();
+		  allMovieCards.forEach(card => {
+			card.style.display = card.dataset.title.includes(query) ? "flex" : "none";
+		  });
+		});
+
+		loadMovies();
+	  </script>
+	</body>
+	</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>City Selector</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background: #f7f7f7;
+    }
+    h2 {
+      margin-bottom: 1rem;
+    }
+    .search-container {
+      position: relative;
+      width: 320px;
+    }
+    input {
+      padding: 10px 12px;
+      font-size: 16px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      outline: none;
+      transition: border 0.2s;
+    }
+    input:focus {
+      border-color: #007bff;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 4px 0 0 0;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      position: absolute;
+      z-index: 10;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    li {
+      padding: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    li:hover,
+    li.active {
+      background: #007bff;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎟️ Select Your City</h2>
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Type city name...">
+    <ul id="suggestions"></ul>
+  </div>
+
+  <script>
+    let allCities = [];
+    let currentFocus = -1;
+
+    // Fetch cities from backend
+    async function loadCities() {
+      try {
+        const res = await fetch('/api/cities');
+        allCities = await res.json();
+      } catch (err) {
+        console.error('Error loading cities:', err);
+      }
+    }
+
+    // Show autocomplete suggestions
+    function showSuggestions(query) {
+      const suggestions = document.getElementById('suggestions');
+      suggestions.innerHTML = '';
+      currentFocus = -1;
+      if (!query) return;
+
+      const filtered = allCities.filter(city =>
+        city.name.toLowerCase().includes(query.toLowerCase())
+      );
+
+      filtered.forEach(city => {
+        const li = document.createElement('li');
+        li.textContent = city.name;
+        li.dataset.slug = city.slug;
+        li.dataset.regioncode = city.regioncode;
+        li.onclick = () => {
+          window.location.href = `movies.html?slug=${city.slug}&regioncode=${city.regioncode}`;
+        };
+        suggestions.appendChild(li);
+      });
+    }
+
+    const input = document.getElementById('searchInput');
+    const suggestions = document.getElementById('suggestions');
+
+    input.addEventListener('input', (e) => {
+      showSuggestions(e.target.value);
+    });
+
+    // Keyboard navigation
+    input.addEventListener('keydown', (e) => {
+      let items = suggestions.getElementsByTagName('li');
+      if (!items.length) return;
+
+      if (e.key === "ArrowDown") {
+        currentFocus++;
+        addActive(items);
+      } else if (e.key === "ArrowUp") {
+        currentFocus--;
+        addActive(items);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (currentFocus > -1) {
+          items[currentFocus].click();
+        }
+      }
+    });
+
+    function addActive(items) {
+      if (!items) return;
+      removeActive(items);
+      if (currentFocus >= items.length) currentFocus = 0;
+      if (currentFocus < 0) currentFocus = items.length - 1;
+      items[currentFocus].classList.add("active");
+    }
+
+    function removeActive(items) {
+      for (let item of items) {
+        item.classList.remove("active");
+      }
+    }
+
+    // Close suggestions when clicking outside
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".search-container")) {
+        suggestions.innerHTML = '';
+      }
+    });
+
+    loadCities();
+  </script>
+</body>
+</html>

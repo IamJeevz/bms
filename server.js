@@ -8,16 +8,15 @@ const PORT = 3000;
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-
-// 🔹 Function to generate dynamic x-bms-id
+// 🔹 Generate dynamic x-bms-id
 function generateBmsId() {
-  const prefix = 1; // seems fixed
-  const randomInt = Math.floor(Math.random() * 1_000_000_000); // 9-digit random number
-  const timestamp = Date.now(); // current time in ms
+  const prefix = 1;
+  const randomInt = Math.floor(Math.random() * 1_000_000_000);
+  const timestamp = Date.now();
   return `${prefix}.${randomInt}.${timestamp}`;
 }
 
-// API to fetch cities (your existing code)
+// 🔹 Fetch cities
 app.get('/api/cities', async (req, res) => {
   try {
     const response = await axios.get(
@@ -29,7 +28,7 @@ app.get('/api/cities', async (req, res) => {
           'Referer': 'https://in.bookmyshow.com/',
           'Origin': 'https://in.bookmyshow.com',
           'sec-ch-ua-platform': 'Windows',
-        }
+        },
       }
     );
 
@@ -42,14 +41,14 @@ app.get('/api/cities', async (req, res) => {
           cities.push({
             name: sub.SubRegionName,
             slug: sub.SubRegionSlug,
-            regioncode: sub.SubRegionCode
+            regioncode: sub.SubRegionCode,
           });
         });
       } else {
         cities.push({
           name: city.RegionName,
           slug: city.RegionSlug,
-          regioncode: city.RegionCode
+          regioncode: city.RegionCode,
         });
       }
     };
@@ -64,62 +63,67 @@ app.get('/api/cities', async (req, res) => {
   }
 });
 
-// New API to fetch movies for selected city
+// 🔹 Fetch movies
 app.get('/api/movies', async (req, res) => {
   const { slug, regioncode } = req.query;
+  if (!slug || !regioncode) return res.status(400).json({ error: 'Missing slug or regioncode' });
 
-  if (!slug || !regioncode) {
-    return res.status(400).json({ error: 'Missing slug or regioncode' });
-  }
+  const headers = {
+    'x-app-code': 'WEB',
+    'x-bms-id': generateBmsId(),
+    'x-platform-code': 'DESKTOP-WEB',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+    'Accept': 'application/json, text/plain, */*',
+    'Referer': 'https://in.bookmyshow.com/',
+    'Origin': 'https://in.bookmyshow.com',
+    'sec-ch-ua-platform': 'Windows'
+  };
 
-  // Construct URLs
   const currentUrl = `https://in.bookmyshow.com/api/explore/v1/discover/movies-${slug}?region=${regioncode}`;
   const upcomingUrl = `https://in.bookmyshow.com/api/explore/v1/discover/upcoming-movies-${slug}?region=${regioncode}`;
 
-  // ✅ Print URLs for debugging
- // console.log("📌 Current movies URL:", currentUrl);
- // console.log("📌 Upcoming movies URL:", upcomingUrl);
-
   try {
-    // Fetch current movies
-    const currentMovies = await axios.get(currentUrl, {
-      headers: {
-        'x-app-code': 'WEB',
-        'x-bms-id': generateBmsId(),
-        'x-platform-code': 'DESKTOP-WEB',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        'Accept': 'application/json, text/plain, */*',
-        'Referer': 'https://in.bookmyshow.com/',
-        'Origin': 'https://in.bookmyshow.com',
-        'sec-ch-ua-platform': 'Windows'
-      }
-    });
+    const [currentMovies, upcomingMovies] = await Promise.all([
+      axios.get(currentUrl, { headers }),
+      axios.get(upcomingUrl, { headers }),
+    ]);
 
-    // Fetch upcoming movies
-    const upcomingMovies = await axios.get(upcomingUrl, {
-      headers: {
-        'x-app-code': 'WEB',
-        'x-bms-id': generateBmsId(),
-        'x-platform-code': 'DESKTOP-WEB',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        'Accept': 'application/json, text/plain, */*',
-        'Referer': 'https://in.bookmyshow.com/',
-        'Origin': 'https://in.bookmyshow.com',
-        'sec-ch-ua-platform': 'Windows'
-      }
-    });
-// console.log(generateBmsId(),'generateBmsId');
-    res.json({
-      current: currentMovies.data,
-      upcoming: upcomingMovies.data
-    });
-
-  } catch (error) {
-    console.error('Error fetching movies:', error.response?.status, error.message);
+    res.json({ current: currentMovies.data, upcoming: upcomingMovies.data });
+  } catch (err) {
+    console.error('Error fetching movies:', err.response?.status, err.message);
     res.status(500).json({ error: 'Failed to fetch movies' });
   }
 });
 
+// 🔹 Setup Alert POST API
+app.post('/api/movie-details', async (req, res) => {
+  const { ctaUrl, title, img } = req.body;
 
+  if (!ctaUrl || !title || !img) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  try {
+    const response = await axios.get(ctaUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept': 'text/html',
+        'Referer': 'https://in.bookmyshow.com/',
+		'sec-ch-ua-platform': 'Windows'
+      },
+    });
+
+    const html = response.data;
+
+    // Extract eventReleaseDate
+    const match = html.match(/"eventReleaseDate"\s*:\s*"([^"]+)"/);
+    const releaseDate = match ? match[1] : 'TBA';
+
+    res.json({ title, img, ctaUrl, releaseDate });
+  } catch (err) {
+    console.error('Error fetching movie details:', err.message);
+    res.status(500).json({ error: 'Failed to fetch movie details' });
+  }
+});
 
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));

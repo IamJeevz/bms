@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>City Selector Autocomplete</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    input { padding: 8px; font-size: 16px; width: 300px; }
+    ul { list-style: none; padding: 0; margin: 0; width: 300px; border: 1px solid #ccc; position: absolute; background: #fff; z-index: 10; }
+    li { padding: 8px; cursor: pointer; }
+    li:hover { background: #f0f0f0; }
+    #output { margin-top: 60px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>🎟️ Select Your City</h2>
+  <input type="text" id="searchInput" placeholder="Type city name...">
+  <ul id="suggestions"></ul>
+  <div id="output"></div>
+
+  <script>
+    let allCities = [];
+
+    // Fetch cities from backend
+    async function loadCities() {
+      try {
+        const res = await fetch('/api/cities');
+        allCities = await res.json();
+      } catch (err) {
+        console.error('Error loading cities:', err);
+      }
+    }
+
+    // Show autocomplete suggestions
+    function showSuggestions(query) {
+      const suggestions = document.getElementById('suggestions');
+      suggestions.innerHTML = '';
+      if (!query) return;
+
+      const filtered = allCities.filter(city => city.name.toLowerCase().includes(query.toLowerCase()));
+
+      filtered.forEach(city => {
+        const li = document.createElement('li');
+        li.textContent = city.name;
+        li.dataset.slug = city.slug;
+		li.dataset.regioncode = city.regioncode;
+        li.onclick = () => {
+          document.getElementById('searchInput').value = city.name;
+          suggestions.innerHTML = '';
+          document.getElementById('output').textContent = `✅ Selected: ${city.name} (Slug: ${city.slug}) (RegionCode: ${city.regioncode})`;
+        };
+        suggestions.appendChild(li);
+      });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      showSuggestions(e.target.value);
+    });
+
+    loadCities();
+  </script>
+</body>
+</html>

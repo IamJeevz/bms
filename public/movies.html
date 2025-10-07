@@ -1,242 +1,159 @@
-	<!DOCTYPE html>
-	<html lang="en">
-	<head>
-	  <meta charset="UTF-8" />
-	  <title>Movies</title>
-	  <meta name="viewport" content="width=device-width, initial-scale=1" />
-	  <style>
-		:root{
-		  --card-width: 220px;
-		  --card-img-h: 330px;
-		  --gap: 16px;
-		}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Movies</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f5f6fa; color: #222; position: relative; }
+  h2 { margin-bottom: 12px; }
+  #movieSearch { width: 100%; max-width: 400px; padding: 10px 12px; font-size: 16px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: border 0.2s; }
+  #movieSearch:focus { border-color: #007bff; }
+  .movie-section { margin-bottom: 28px; }
+  .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; align-items: start; }
+  .movie-card { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 6px 18px rgba(15,23,42,0.08); display: flex; flex-direction: column; height: 100%; }
+  .movie-card img { width: 100%; height: 330px; object-fit: cover; background: #ddd; }
+  .card-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .movie-title { font-size: 15px; font-weight: 600; line-height: 1.2; color: #111; }
+  .movie-sub { font-size: 13px; color: #666; min-height: 1em; margin-top: 2px; }
+  .cta-wrap { margin-top: auto; display: flex; justify-content: center; }
+  .book-btn { display: inline-block; padding: 8px 12px; background: #ff3b3b; color: #fff; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px; transition: transform .12s ease, box-shadow .12s ease; box-shadow: 0 4px 10px rgba(255,59,59,0.12); white-space: nowrap; }
+  .book-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255,59,59,0.16); }
 
-		body {
-		  font-family: Arial, sans-serif;
-		  margin: 20px;
-		  background: #f5f6fa;
-		  color: #222;
-		}
-		h2 { margin-bottom: 12px; }
-		h3 { margin: 20px 0 10px; }
+  /* Top-right buttons */
+  .top-buttons { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; }
+  .top-buttons button { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s ease; }
+  .logout-btn { background: #ff3b3b; color: #fff; }
+  .reset-btn { background: #222; color: #fff; }
+  .top-buttons button:hover { transform: translateY(-2px); opacity: 0.9; }
+</style>
+</head>
+<body>
 
-		/* Search input */
-		#movieSearch {
-		  width: 100%;
-		  max-width: 400px;
-		  padding: 10px 12px;
-		  font-size: 16px;
-		  margin-bottom: 20px;
-		  border: 1px solid #ccc;
-		  border-radius: 6px;
-		  outline: none;
-		  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-		  transition: border 0.2s;
-		}
-		#movieSearch:focus { border-color: #007bff; }
+<div class="top-buttons">
+  <button class="reset-btn" onclick="resetPassword()">Reset Password</button>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
 
-		.movie-section {
-		  margin-bottom: 28px;
-		}
+<h2>🎬 Movies</h2>
+<input type="text" id="movieSearch" placeholder="Search movies..." />
+<div id="movies"></div>
 
-		.movie-grid {
-		  display: grid;
-		  grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr));
-		  gap: var(--gap);
-		  align-items: start;
-		}
+<script>
+function logout() { localStorage.clear(); window.location.replace("login.html"); }
+function resetPassword() { window.location.href = "reset-password.html"; }
 
-		.movie-card {
-		  background: #fff;
-		  border-radius: 8px;
-		  overflow: hidden;
-		  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
-		  display: flex;
-		  flex-direction: column;
-		  height: 100%;
-		}
+if(localStorage.getItem("loggedIn") !== "true") window.location.replace("login.html");
 
-		.movie-card img {
-		  width: 100%;
-		  height: var(--card-img-h);
-		  object-fit: cover;
-		  display: block;
-		  background: #ddd;
-		}
+const params = new URLSearchParams(window.location.search);
+const slug = params.get("slug");
+const regioncode = params.get("regioncode");
 
-		.card-body {
-		  padding: 12px;
-		  display: flex;
-		  flex-direction: column;
-		  gap: 8px;
-		  flex: 1;
-		}
+let allMovieCards = [];
 
-		.movie-title {
-		  font-size: 15px;
-		  font-weight: 600;
-		  line-height: 1.2;
-		  color: #111;
-		}
+function extractTitleFromCard(card) {
+  let movieTitle = "";
+  if (Array.isArray(card.text)) {
+    for (const block of card.text) {
+      if (Array.isArray(block.components)) {
+        for (const comp of block.components) {
+          if (comp.type === "text" && comp.text) {
+            movieTitle = comp.text;
+            break;
+          }
+        }
+      }
+      if (movieTitle) break;
+    }
+  }
+  return movieTitle || "Untitled";
+}
 
-		.movie-sub {
-		  font-size: 13px;
-		  color: #666;
-		  min-height: 1em;
-		  margin-top: 2px;
-		}
+async function loadMovies() {
+  try {
+    const res = await fetch(`/api/movies?slug=${encodeURIComponent(slug)}&regioncode=${encodeURIComponent(regioncode)}`);
+    const data = await res.json();
+    const container = document.getElementById("movies");
+    container.innerHTML = "";
+    allMovieCards = [];
 
-		.cta-wrap {
-		  margin-top: auto;
-		  display: flex;
-		  justify-content: center;
-		}
+    function renderSection(title, movieData) {
+      const section = document.createElement("div");
+      section.className = "movie-section";
+      section.innerHTML = `<h3>${title}</h3>`;
+      const grid = document.createElement("div");
+      grid.className = "movie-grid";
 
-		.book-btn {
-		  display: inline-block;
-		  padding: 8px 12px;
-		  background: #ff3b3b;
-		  color: #fff;
-		  border-radius: 6px;
-		  text-decoration: none;
-		  font-weight: 600;
-		  font-size: 14px;
-		  transition: transform .12s ease, box-shadow .12s ease;
-		  box-shadow: 0 4px 10px rgba(255,59,59,0.12);
-		  white-space: nowrap;
-		}
-		.book-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255,59,59,0.16); }
+      const listings = movieData?.listings || [];
+      listings.forEach(listing => {
+        if (!Array.isArray(listing.cards)) return;
+        listing.cards.forEach(card => {
+          if (!(card?.ctaUrl && card.ctaUrl.includes("/ET"))) return;
 
-		@media (max-width: 800px) {
-		  :root{ --card-width: 160px; --card-img-h: 240px; }
-		}
-	  </style>
-	</head>
-	<body>
-	  <h2>🎬 Movies</h2>
+          const movieTitle = extractTitleFromCard(card);
+          const poster = card.image?.url || "";
+          const ctaUrl = card.ctaUrl;
 
-	  <!-- Search input -->
-	  <input type="text" id="movieSearch" placeholder="Search movies..." />
+          const cardEl = document.createElement("div");
+          cardEl.className = "movie-card";
+          cardEl.dataset.title = movieTitle.toLowerCase();
+          cardEl.innerHTML = `
+            <img src="${poster}" alt="${escapeHtml(movieTitle)}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'400\\' height=\\'600\\'><rect width=\\'100%\\' height=\\'100%\\' fill=\\'%23ddd\\'/><text x=\\'50%\\' y=\\'50%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' font-family=\\'Arial\\' font-size=\\'20\\' fill=\\'%23666\\'>No Image</text></svg>'" />
+            <div class="card-body">
+              <div class="movie-title">${escapeHtml(movieTitle)}</div>
+              <div class="movie-sub">${escapeHtml(card.subText || "")}</div>
+              <div class="cta-wrap">
+                <a class="book-btn" href="setup-alert.html" 
+                  onclick='localStorage.setItem("selectedMovie", JSON.stringify({
+                    title: "${escapeHtml(movieTitle)}",
+                    img: "${poster}",
+                    ctaUrl: "${ctaUrl}"
+                  }))'>
+                  Setup Alert
+                </a>
+              </div>
+            </div>
+          `;
+          grid.appendChild(cardEl);
+          allMovieCards.push(cardEl);
+        });
+      });
 
-	  <div id="movies"></div>
+      section.appendChild(grid);
+      container.appendChild(section);
+    }
 
-	  <script>
-		const params = new URLSearchParams(window.location.search);
-		const slug = params.get("slug");
-		const regioncode = params.get("regioncode");
+    if (data.current) renderSection("Now Showing", data.current);
+    if (data.upcoming) renderSection("Upcoming Movies", data.upcoming);
+    if ((!data.current?.listings?.length) && (!data.upcoming?.listings?.length)) {
+      container.innerHTML = "<p>No movies found.</p>";
+    }
 
-		let allMovieCards = []; // will store references to all cards
+  } catch (err) {
+    console.error("Error loading movies:", err);
+    document.getElementById("movies").textContent = "⚠️ Failed to load movies.";
+  }
+}
 
-		function extractTitleFromCard(card) {
-		  let movieTitle = "";
-		  if (Array.isArray(card.text)) {
-			for (const block of card.text) {
-			  if (Array.isArray(block.components)) {
-				for (const comp of block.components) {
-				  if (comp.type === "text" && comp.text) {
-					movieTitle = comp.text;
-					break;
-				  }
-				}
-			  }
-			  if (movieTitle) break;
-			}
-		  }
-		  return movieTitle || "Untitled";
-		}
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
-		async function loadMovies() {
-		  try {
-			const res = await fetch(`/api/movies?slug=${encodeURIComponent(slug)}&regioncode=${encodeURIComponent(regioncode)}`);
-			const data = await res.json();
-			const container = document.getElementById("movies");
-			container.innerHTML = "";
+const searchInput = document.getElementById("movieSearch");
+searchInput.addEventListener("input", () => {
+  const query = searchInput.value.trim().toLowerCase();
+  allMovieCards.forEach(card => {
+    card.style.display = card.dataset.title.includes(query) ? "flex" : "none";
+  });
+});
 
-			allMovieCards = []; // reset
-
-			function renderSection(title, movieData) {
-			  const section = document.createElement("div");
-			  section.className = "movie-section";
-			  section.innerHTML = `<h3>${title}</h3>`;
-
-			  const grid = document.createElement("div");
-			  grid.className = "movie-grid";
-
-			  const listings = movieData?.listings || [];
-			  listings.forEach(listing => {
-				if (!Array.isArray(listing.cards)) return;
-				listing.cards.forEach(card => {
-				  if (!(card?.ctaUrl && card.ctaUrl.includes("/ET"))) return;
-
-				  const movieTitle = extractTitleFromCard(card);
-				  const poster = card.image?.url || "";
-				  const ctaUrl = card.ctaUrl;
-
-				  const cardEl = document.createElement("div");
-				  cardEl.className = "movie-card";
-				  cardEl.dataset.title = movieTitle.toLowerCase();
-				  cardEl.innerHTML = `
-					<img src="${poster}" alt="${escapeHtml(movieTitle)}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'400\\' height=\\'600\\'><rect width=\\'100%\\' height=\\'100%\\' fill=\\'%23ddd\\'/><text x=\\'50%\\' y=\\'50%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' font-family=\\'Arial\\' font-size=\\'20\\' fill=\\'%23666\\'>No Image</text></svg>'" />
-					<div class="card-body">
-					  <div class="movie-title">${escapeHtml(movieTitle)}</div>
-					  <div class="movie-sub">${escapeHtml(card.subText || "")}</div>
-
-	<div class="cta-wrap">
-	  <a class="book-btn" href="setup-alert.html" 
-	   onclick='localStorage.setItem("selectedMovie", JSON.stringify({
-		 title: "${escapeHtml(movieTitle)}",
-		 img: "${poster}",
-		 ctaUrl: "${ctaUrl}"
-	   }))'>
-	  Setup Alert
-	</a>
-
-	</div>
-
-
-					</div>
-				  `;
-				  grid.appendChild(cardEl);
-				  allMovieCards.push(cardEl); // save reference for search
-				});
-			  });
-
-			  section.appendChild(grid);
-			  container.appendChild(section);
-			}
-
-			if (data.current) renderSection("Now Showing", data.current);
-			if (data.upcoming) renderSection("Upcoming Movies", data.upcoming);
-			if ((!data.current?.listings?.length) && (!data.upcoming?.listings?.length)) {
-			  container.innerHTML = "<p>No movies found.</p>";
-			}
-
-		  } catch (err) {
-			console.error("Error loading movies:", err);
-			document.getElementById("movies").textContent = "⚠️ Failed to load movies.";
-		  }
-		}
-
-		function escapeHtml(str) {
-		  if (!str) return "";
-		  return String(str)
-			.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, '&#039;');
-		}
-
-		// 🔹 Movie search filter
-		const searchInput = document.getElementById("movieSearch");
-		searchInput.addEventListener("input", () => {
-		  const query = searchInput.value.trim().toLowerCase();
-		  allMovieCards.forEach(card => {
-			card.style.display = card.dataset.title.includes(query) ? "flex" : "none";
-		  });
-		});
-
-		loadMovies();
-	  </script>
-	</body>
-	</html>
+loadMovies();
+</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f6fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .form-container { background: #fff; padding: 30px 40px; border-radius: 10px; box-shadow: 0 6px 18px rgba(15,23,42,0.08); width: 100%; max-width: 400px; box-sizing: border-box; }
+    h2 { text-align: center; margin-bottom: 25px; color: #222; }
+    label { display: block; margin-bottom: 6px; font-weight: 500; }
+    input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; outline: none; box-sizing: border-box; box-shadow: inset 0 1px 3px rgba(0,0,0,0.08); transition: all 0.2s ease; }
+    input:hover { border-color: #ff3b3b; }
+    input:focus { border-color: #ff3b3b; box-shadow: 0 0 5px rgba(255,59,59,0.3); background: #fff; }
+    button { width: 100%; padding: 12px; border: none; border-radius: 6px; background: #ff3b3b; color: #fff; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(255,59,59,0.2); }
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255,59,59,0.25); }
+    .links { text-align: center; margin-top: 15px; font-size: 14px; }
+    .links a { color: #ff3b3b; text-decoration: none; margin: 0 8px; font-weight: 500; }
+    .links a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Login</h2>
+    <label for="phone">Phone Number</label>
+    <input type="text" id="phone" placeholder="Enter phone number" />
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Enter password" />
+    <button id="loginBtn">Login</button>
+    <div class="links">
+      <span>Don't have an account? <a href="signup.html">Sign Up</a></span><br/>
+      <span><a href="forgot-password.html">Forgot Password?</a></span>
+    </div>
+  </div>
+
+  <script>
+    const loginBtn = document.getElementById('loginBtn');
+    loginBtn.addEventListener('click', async () => {
+      const phone = document.getElementById('phone').value.trim();
+      const password = document.getElementById('password').value.trim();
+      if (!phone || !password) return alert("Please enter both fields.");
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ phone, password })
+        });
+        const data = await res.json();
+        if(data.success){
+          localStorage.setItem("loggedIn", "true");
+          localStorage.setItem("phone", phone); // store phone
+          window.location.href = "index.html";
+        } else {
+          alert(data.message || "Login failed");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error during login");
+      }
+    });
+  </script>
+</body>
+</html>

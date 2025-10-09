@@ -25,6 +25,7 @@ app.use('/api', require('./routes/alerts'));
 app.use('/api', require('./routes/forgotPassword'));
 app.use('/api', require('./routes/resetPassword'));
 app.use('/api', require('./routes/verify-otp'));
+app.use('/api', require('./routes/venue'));
 
 // Start Server
 app.listen(PORT, () => console.log(`?? Server running on http://localhost:${PORT}`));

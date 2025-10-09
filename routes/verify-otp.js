@@ -1,6 +1,8 @@
 // routes/verify-otp
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
+
 const db = require('../db'); // mysql2 promise connection
 
 router.post('/verify-otp', async (req, res) => {
@@ -36,8 +38,9 @@ router.post('/verify-otp', async (req, res) => {
     if (diffMinutes > 2) {
       return res.status(400).json({ message: 'OTP expired. Please request a new one.' });
     }
-
-    return res.json({ message: 'OTP verified successfully' });
+	const token = crypto.randomBytes(32).toString('hex');
+	await db.query('UPDATE sec_user_mst SET token = ?, used=0 WHERE phone_number = ?', [token, phone]);
+    return res.json({ message: 'OTP verified successfully',token });
   } catch (err) {
     console.error('Error verifying OTP:', err);
     res.status(500).json({ message: 'Server error' });

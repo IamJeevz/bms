@@ -38,13 +38,21 @@ router.post('/reset-password', async (req, res) => {
 });
 
 router.post('/reset-frg_password', async (req, res) => {
-  const { phone, newPassword} = req.body;
+  const { phone, newPassword, token } = req.body;
 
   if (!phone || !newPassword) {
     return res.status(400).json({ success: false, message: 'Missing required fields' });
   }
 
   try {
+	  
+	const [rows] = await db.query('SELECT * FROM sec_user_mst WHERE phone_number = ? AND token = ? AND used = 0 ORDER BY user_id DESC LIMIT 1', [phone, token]);
+	const resetEntry = rows[0];
+
+	if (!resetEntry || new Date() > new Date(resetEntry.expires_at)) {
+    return res.status(400).json({ message: 'Invalid or expired token' });
+	}
+  
     // ✅ Check if user exists
     const [users] = await db.query('SELECT * FROM sec_user_mst WHERE phone_number = ?', [phone]);
     if (users.length === 0) {
@@ -56,7 +64,7 @@ router.post('/reset-frg_password', async (req, res) => {
     const hashedNew = await bcrypt.hash(newPassword, 10);
 
     // ✅ Update password in DB
-    await db.query('UPDATE sec_user_mst SET password = ? WHERE phone_number = ?', [hashedNew, phone]);
+    await db.query('UPDATE sec_user_mst SET password = ?,used = 1 WHERE phone_number = ?', [hashedNew, phone]);
 
     return res.json({ success: true, message: 'Password reset successfully' });
   } catch (err) {

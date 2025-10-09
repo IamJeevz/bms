@@ -7,8 +7,15 @@ const PORT = 3000;
 const db = require('./db');
 
 // Middleware
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+
+// ?? Route: when user opens "/", send login page instead of index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// Static files (after the above so it doesn’t override)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
 app.use('/api', require('./routes/auth'));
@@ -19,4 +26,5 @@ app.use('/api', require('./routes/forgotPassword'));
 app.use('/api', require('./routes/resetPassword'));
 app.use('/api', require('./routes/verify-otp'));
 
-app.listen(PORT, () => console.log(`ðŸš€ Server running on http://localhost:${PORT}`));
+// Start Server
+app.listen(PORT, () => console.log(`?? Server running on http://localhost:${PORT}`));

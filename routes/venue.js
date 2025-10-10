@@ -19,7 +19,7 @@ router.get('/venue_search', async (req, res) => {
   }
 
   try {
-    const apiUrl = `https://in.bookmyshow.com/quickbook-search.bms?r=${r}&q=${q}`;
+    const apiUrl = `https://in.bookmyshow.com/quickbook-search.bms?r=${r}&cat=VN&q=${q}`;
     const response = await axios.get(apiUrl, {
       headers: {
         'x-app-code': 'WEB',

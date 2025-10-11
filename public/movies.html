@@ -7,7 +7,7 @@
 <style>
   body { font-family: Arial, sans-serif; margin: 20px; background: #f5f6fa; color: #222; position: relative; }
   h2 { margin-bottom: 12px; }
-  #movieSearch { width: 100%; max-width: 400px; padding: 10px 12px; font-size: 16px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: border 0.2s; }
+  #movieSearch { width: 100%; max-width: 400px; padding: 10px 12px; font-size: 16px; margin-top: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: border 0.2s; }
   #movieSearch:focus { border-color: #007bff; }
   .movie-section { margin-bottom: 28px; }
   .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; align-items: start; }
@@ -31,17 +31,16 @@
 <body>
 
 <div class="top-buttons">
-  <button class="reset-btn" onclick="resetPassword()">Reset Password</button>
+ <!-- <button class="reset-btn" onclick="resetPassword()">Reset Password</button> -->
   <button class="logout-btn" onclick="logout()">Logout</button>
 </div>
-
 <h2>🎬 Movies</h2>
 <input type="text" id="movieSearch" placeholder="Search movies..." />
 <div id="movies"></div>
 
 <script>
 function logout() { localStorage.clear(); window.location.replace("login.html"); }
-function resetPassword() { window.location.href = "reset-password.html"; }
+// function resetPassword() { window.location.href = "reset-password.html"; }
 
 if(localStorage.getItem("loggedIn") !== "true") window.location.replace("login.html");
 

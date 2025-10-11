@@ -1,31 +1,37 @@
-const express = require('express');
-const path = require('path');
-const app = express();
-const PORT = process.env.PORT || 3000;
+const https = require('https');
 
-// DB
-const db = require('./db');
-
-// Middleware
-app.use(express.json());
-
-// ?? Route: when user opens "/", send login page instead of index.html
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+// Create an HTTPS agent that disables certificate validation
+const agent = new https.Agent({
+  rejectUnauthorized: false
 });
 
-// Static files (after the above so it doesn’t override)
-app.use(express.static(path.join(__dirname, 'public')));
+async function fetchRegions() {
+  const url = 'https://in.bookmyshow.com/api/explore/v1/discover/regions';
 
-// Routes
-app.use('/api', require('./routes/auth'));
-app.use('/api', require('./routes/cities'));
-app.use('/api', require('./routes/movies'));
-app.use('/api', require('./routes/alerts'));
-app.use('/api', require('./routes/forgotPassword'));
-app.use('/api', require('./routes/resetPassword'));
-app.use('/api', require('./routes/verify-otp'));
-app.use('/api', require('./routes/venue'));
+  const headers = {
+    'User-Agent': 'Mozilla/5.0',
+    'Accept': 'application/json, text/plain, */*',
+    'Referer': 'https://in.bookmyshow.com/',
+    'Origin': 'https://in.bookmyshow.com',
+    'sec-ch-ua-platform': 'Windows'
+  };
 
-// Start Server
-app.listen(PORT, () => console.log(`?? Server running on http://localhost:${PORT}`));
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+      agent
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log(data);
+  } catch (err) {
+    console.error('Fetch error:', err.message || err);
+  }
+}
+
+fetchRegions();

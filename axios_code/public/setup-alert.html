@@ -1,241 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Setup Alert</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  
-  <!-- Flatpickr CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<meta charset="UTF-8">
+<title>Setup Alert</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+  body { font-family: Arial,sans-serif; margin: 20px; background: #f5f6fa; color: #222; position: relative; }
+  h2 { margin-bottom: 20px; }
+  .container { display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; }
+  .movie-card { display: flex; flex-direction: column; width: 245px; border-radius: 8px; overflow: hidden; box-shadow: 0 6px 18px rgba(15,23,42,0.08); background: #fff; }
+  .movie-card img { width: 100%; height: 335px; object-fit: cover; background: #ddd; }
+  .card-body { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .movie-title { font-size: 18px; font-weight: 600; }
+  .movie-sub { font-size: 14px; color: #666; }
+  .alert-form { display: flex; flex-direction: column; gap: 15px; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); width: 245px; }
+  .alert-form label { font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+  .alert-form input { padding: 10px 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; outline: none; transition: all 0.2s ease; background: #fff; box-shadow: inset 0 1px 3px rgba(0,0,0,0.08); }
+  .alert-form input:hover { border-color: #ff3b3b; }
+  .alert-form input:focus { border-color: #ff3b3b; box-shadow: 0 0 5px rgba(255,59,59,0.3); background: #fff; }
+  .alert-form button { width: 100%; padding: 10px 0; border-radius: 6px; border: none; font-size: 14px; font-weight: 600; background: #ff3b3b; color: #fff; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(255,59,59,0.2); }
+  .alert-form button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255,59,59,0.25); }
 
-  <style>
-    body {
-      font-family: Arial,sans-serif;
-      margin: 20px;
-      background: #f5f6fa;
-      color: #222;
-    }
+  /* Top-right buttons */
+  .top-buttons { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; }
+  .top-buttons button { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s ease; }
+  .logout-btn { background: #ff3b3b; color: #fff; }
+  .reset-btn { background: #222; color: #fff; }
+  .top-buttons button:hover { transform: translateY(-2px); opacity: 0.9; }
 
-    h2 {
-      margin-bottom: 20px;
-    }
-
-    .container {
-      display: flex;
-      gap: 30px;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-
-    /* Movie Card */
-    .movie-card {
-      display: flex;
-      flex-direction: column;
-      width: 245px;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
-      background: #fff;
-    }
-
-    .movie-card img {
-      width: 100%;
-      height: 335px;
-      object-fit: cover;
-      display: block;
-      background: #ddd;
-    }
-
-    .card-body {
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .movie-title {
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .movie-sub {
-      font-size: 14px;
-      color: #666;
-    }
-
-    /* Alert Form */
-    .alert-form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-      width: 245px;
-    }
-
-    .alert-form label {
-      font-weight: 500;
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-
-    .alert-form input {
-      padding: 10px 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-      outline: none;
-      transition: all 0.2s ease;
-      background: #fff;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
-    }
-
-    .alert-form input:hover {
-      border-color: #ff3b3b;
-    }
-
-    .alert-form input:focus {
-      border-color: #ff3b3b;
-      box-shadow: 0 0 5px rgba(255,59,59,0.3);
-      background: #fff;
-    }
-
-    .alert-form button {
-      width: 100%;
-      padding: 10px 0;
-      border-radius: 6px;
-      border: none;
-      font-size: 14px;
-      font-weight: 600;
-      background: #ff3b3b;
-      color: #fff;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 12px rgba(255,59,59,0.2);
-    }
-
-    .alert-form button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(255,59,59,0.25);
-    }
-  </style>
+  /* Venue search results */
+  #venueResults { margin-top: 6px; max-height: 150px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; background: #fff; }
+  .venue-result { padding: 6px 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+  .venue-result:hover { background: #f0f0f0; }
+</style>
 </head>
 <body>
-  <h2>📌 Setup Alert</h2>
-  <div class="container">
-    <div id="movieContainer"></div>
-    <div class="alert-form">
-      <label for="alertDate">Select alert date:</label>
-      <input type="text" id="alertDate" placeholder="Select date" />
 
-      <label for="venue">Select venue:</label>
+<div class="top-buttons">
+  <button class="reset-btn" onclick="resetPassword()">Reset Password</button>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<h2>📌 Setup Alert</h2>
+<div class="container">
+  <div id="movieContainer"></div>
+  <div class="alert-form">
+    <label for="alertDate">Select alert date:</label>
+    <input type="text" id="alertDate" placeholder="Select date" />
+
+    <label for="venue">Select venue:</label>
+    <div style="display: flex; gap: 8px; align-items: center;">
       <input type="text" id="venue" placeholder="Enter venue..." />
-
-      <button id="saveAlertBtn">Save Alert</button>
+      <button id="searchVenueBtn" type="button">Search</button>
     </div>
+    <div id="venueResults"></div>
+
+    <button id="saveAlertBtn">Save Alert</button>
   </div>
+</div>
 
-  <!-- Flatpickr JS -->
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-  <script>
-    const movieContainer = document.getElementById("movieContainer");
-    const alertInput = document.getElementById("alertDate");
-    const selectedMovie = JSON.parse(localStorage.getItem("selectedMovie") || "{}");
+<script>
+function logout() { localStorage.clear(); window.location.replace("login.html"); }
+function resetPassword() { window.location.href = "reset-password.html"; }
 
-    // Helper: format date in YYYY-MM-DD local
-    const formatDateLocal = d => {
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
-    };
+if(localStorage.getItem("loggedIn") !== "true") window.location.replace("login.html");
 
-    if (!selectedMovie.ctaUrl) {
-      movieContainer.textContent = "⚠️ Invalid movie data.";
+const movieContainer = document.getElementById("movieContainer");
+const alertInput = document.getElementById("alertDate");
+const selectedMovie = JSON.parse(localStorage.getItem("selectedMovie") || "{}");
+
+// Helper: format date in YYYY-MM-DD local
+const formatDateLocal = d => {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+if (!selectedMovie.ctaUrl) {
+  movieContainer.textContent = "⚠️ Invalid movie data.";
+} else {
+  fetch('/api/movie-details', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(selectedMovie)
+  })
+  .then(res => res.json())
+  .then(data => {
+    const releaseText = data.releaseDate || 'TBA';
+
+    const imgHtml = `
+      <img src="${data.img}" alt="${data.title}" loading="lazy"
+           onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'245\\' height=\\'335\\'><rect width=\\'100%\\' height=\\'100%\\' fill=\\'%23ddd\\'/><text x=\\'50%\\' y=\\'50%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' font-family=\\'Arial\\' font-size=\\'18\\' fill=\\'%23666\\'>No Image</text></svg>'" />
+    `;
+
+    movieContainer.innerHTML = `
+      <div class="movie-card">
+        ${imgHtml}
+        <div class="card-body">
+          <div class="movie-title">${data.title}</div>
+          <div class="movie-sub">Release Date: ${releaseText}</div>
+        </div>
+      </div>
+    `;
+
+    let releaseDate = new Date(releaseText);
+    if (isNaN(releaseDate)) releaseDate = new Date();
+
+    const today = new Date();
+    const maxDays = 9;
+    let minDate, maxDate;
+
+    if (releaseDate < today) {
+      minDate = today;
+      maxDate = new Date();
+      maxDate.setDate(today.getDate() + maxDays);
     } else {
-      fetch('/api/movie-details', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(selectedMovie)
-      })
-      .then(res => res.json())
-      .then(data => {
-        const releaseText = data.releaseDate || 'TBA';
-
-        const imgHtml = `
-          <img src="${data.img}" alt="${data.title}" loading="lazy"
-               onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'245\\' height=\\'335\\'><rect width=\\'100%\\' height=\\'100%\\' fill=\\'%23ddd\\'/><text x=\\'50%\\' y=\\'50%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' font-family=\\'Arial\\' font-size=\\'18\\' fill=\\'%23666\\'>No Image</text></svg>'" />
-        `;
-
-        movieContainer.innerHTML = `
-          <div class="movie-card">
-            ${imgHtml}
-            <div class="card-body">
-              <div class="movie-title">${data.title}</div>
-              <div class="movie-sub">Release Date: ${releaseText}</div>
-            </div>
-          </div>
-        `;
-
-        // Date restriction logic
-        let releaseDate = new Date(releaseText);
-        if (isNaN(releaseDate)) releaseDate = new Date(); // fallback
-
-        const today = new Date();
-        const maxDays = 9;
-        let minDate, maxDate;
-
-        if (releaseDate < today) {
-          minDate = today;
-          maxDate = new Date();
-          maxDate.setDate(today.getDate() + maxDays);
-        } else {
-          minDate = releaseDate;
-          maxDate = new Date(releaseDate);
-          maxDate.setDate(releaseDate.getDate() + maxDays);
-        }
-
-        // Initialize Flatpickr
-flatpickr(alertInput, {
-  dateFormat: "Y-M-d", // Y=year, M=short month, d=day
-  minDate: minDate,
-  maxDate: maxDate,
-  defaultDate: minDate,
-  disableMobile: true,
-  onValueUpdate: function(selectedDates, dateStr, instance) {
-    // Convert month to uppercase 3-letter format
-    if(selectedDates.length > 0){
-      const d = selectedDates[0];
-      const yyyy = d.getFullYear();
-      const month = d.toLocaleString('en-US', { month: 'short' });
-      const day = String(d.getDate()).padStart(2, '0');
-      alertInput.value = `${yyyy}-${month}-${day}`;
+      minDate = releaseDate;
+      maxDate = new Date(releaseDate);
+      maxDate.setDate(releaseDate.getDate() + maxDays);
     }
-  }
+
+    // Initialize Flatpickr
+    flatpickr(alertInput, {
+      dateFormat: "Y-M-d",
+      minDate: minDate,
+      maxDate: maxDate,
+      defaultDate: minDate,
+      disableMobile: true,
+      onValueUpdate: function(selectedDates) {
+        if(selectedDates.length > 0){
+          const d = selectedDates[0];
+          const yyyy = d.getFullYear();
+          const month = d.toLocaleString('en-US', { month: 'short' });
+          const day = String(d.getDate()).padStart(2, '0');
+          alertInput.value = `${yyyy}-${month}-${day}`;
+        }
+      }
+    });
+
+  })
+  .catch(err => {
+    console.error(err);
+    movieContainer.textContent = "⚠️ Failed to fetch movie details.";
+  });
+}
+
+// Save Alert button
+document.getElementById("saveAlertBtn").addEventListener("click", () => {
+  const alertDate = alertInput.value;
+  const venue = document.getElementById("venue").value;
+
+  if (!alertDate) return alert("Please select alert date.");
+  if (!venue) return alert("Please enter venue.");
+
+  const alertData = { ...selectedMovie, alertDate, venue };
+  console.log("Alert set:", alertData);
+  alert("✅ Alert set successfully!");
 });
 
+// ===== Venue Search Button Logic =====
+const searchVenueBtn = document.getElementById("searchVenueBtn");
+const venueInput = document.getElementById("venue");
+const venueResultsDiv = document.getElementById("venueResults");
+const defaultRegion = "KOCH";
 
-      })
-      .catch(err => {
-        console.error(err);
-        movieContainer.textContent = "⚠️ Failed to fetch movie details.";
-      });
+searchVenueBtn.addEventListener("click", async () => {
+  const query = venueInput.value.trim();
+  venueResultsDiv.innerHTML = "";
+
+  if (!query) {
+    return alert("Please enter a venue to search.");
+  }
+
+  venueResultsDiv.innerHTML = "🔍 Searching...";
+
+  try {
+    const response = await fetch(`/api/venue_search?r=${defaultRegion}&q=${encodeURIComponent(query)}`);
+    const data = await response.json();
+
+    if (!response.ok || !data.movies || data.movies.length === 0) {
+      venueResultsDiv.innerHTML = "⚠️ No results found.";
+      return;
     }
 
-    document.getElementById("saveAlertBtn").addEventListener("click", () => {
-      const alertDate = alertInput.value;
-      const venue = document.getElementById("venue").value;
+    // Show results as clickable options
+    venueResultsDiv.innerHTML = data.movies
+      .map(v => `<div class="venue-result">${v.title}</div>`)
+      .join("");
 
-      if (!alertDate) return alert("Please select alert date.");
-      if (!venue) return alert("Please enter venue.");
-
-      const alertData = { ...selectedMovie, alertDate, venue };
-      console.log("Alert set:", alertData);
-      alert("✅ Alert set successfully!");
+    document.querySelectorAll(".venue-result").forEach(el => {
+      el.addEventListener("click", () => {
+        venueInput.value = el.textContent;
+        venueResultsDiv.innerHTML = "";
+      });
     });
-  </script>
+
+  } catch (err) {
+    console.error(err);
+    venueResultsDiv.innerHTML = "❌ Error fetching venues.";
+  }
+});
+</script>
 </body>
 </html>

@@ -5,7 +5,11 @@ const db = mysql.createConnection({
   user: 'sql12801770',
   password: '9hYwsEFdGy',
   database: 'sql12801770',
-  port: 3306
+  port: 3306,
+  // added new wait 
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
 // connect

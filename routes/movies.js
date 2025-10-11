@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
+const https = require('https');
+
+// Create an HTTPS agent that disables certificate validation
+const agent = new https.Agent({
+  rejectUnauthorized: false,
+});
 
 function generateBmsId() {
   const prefix = 1;
@@ -12,7 +17,8 @@ function generateBmsId() {
 // Fetch movies
 router.get('/movies', async (req, res) => {
   const { slug, regioncode } = req.query;
-  if (!slug || !regioncode) return res.status(400).json({ error: 'Missing slug or regioncode' });
+  if (!slug || !regioncode)
+    return res.status(400).json({ error: 'Missing slug or regioncode' });
 
   const headers = {
     'x-app-code': 'WEB',
@@ -22,21 +28,30 @@ router.get('/movies', async (req, res) => {
     'Accept': 'application/json, text/plain, */*',
     'Referer': 'https://in.bookmyshow.com/',
     'Origin': 'https://in.bookmyshow.com',
-    'sec-ch-ua-platform': 'Windows'
+    'sec-ch-ua-platform': 'Windows',
   };
 
   const currentUrl = `https://in.bookmyshow.com/api/explore/v1/discover/movies-${slug}?region=${regioncode}`;
   const upcomingUrl = `https://in.bookmyshow.com/api/explore/v1/discover/upcoming-movies-${slug}?region=${regioncode}`;
 
   try {
-    const [currentMovies, upcomingMovies] = await Promise.all([
-      axios.get(currentUrl, { headers }),
-      axios.get(upcomingUrl, { headers }),
+    const [currentRes, upcomingRes] = await Promise.all([
+      fetch(currentUrl, { method: 'GET', headers, agent }),
+      fetch(upcomingUrl, { method: 'GET', headers, agent }),
     ]);
 
-    res.json({ current: currentMovies.data, upcoming: upcomingMovies.data });
+    if (!currentRes.ok || !upcomingRes.ok) {
+      throw new Error(`HTTP error ${currentRes.status} or ${upcomingRes.status}`);
+    }
+
+    const [currentMovies, upcomingMovies] = await Promise.all([
+      currentRes.json(),
+      upcomingRes.json(),
+    ]);
+
+    res.json({ current: currentMovies, upcoming: upcomingMovies });
   } catch (err) {
-    console.error('Error fetching movies:', err.response?.status, err.message);
+    console.error('Error fetching movies:', err.message);
     res.status(500).json({ error: 'Failed to fetch movies' });
   }
 });

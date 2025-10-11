@@ -1,23 +1,37 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
+const https = require('https');
+
+// Create an HTTPS agent that disables certificate validation
+const agent = new https.Agent({
+  rejectUnauthorized: false,
+});
 
 // Setup alert
 router.post('/movie-details', async (req, res) => {
   const { ctaUrl, title, img } = req.body;
-  if (!ctaUrl || !title || !img) return res.status(400).json({ error: 'Missing parameters' });
+  if (!ctaUrl || !title || !img)
+    return res.status(400).json({ error: 'Missing parameters' });
+
+  const headers = {
+    'User-Agent': 'Mozilla/5.0',
+    'Accept': 'text/html',
+    'Referer': 'https://in.bookmyshow.com/',
+    'sec-ch-ua-platform': 'Windows',
+  };
 
   try {
-    const response = await axios.get(ctaUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0',
-        'Accept': 'text/html',
-        'Referer': 'https://in.bookmyshow.com/',
-        'sec-ch-ua-platform': 'Windows'
-      },
+    const response = await fetch(ctaUrl, {
+      method: 'GET',
+      headers,
+      agent,
     });
 
-    const html = response.data;
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+
+    const html = await response.text();
     const match = html.match(/"eventReleaseDate"\s*:\s*"([^"]+)"/);
     const releaseDate = match ? match[1] : 'TBA';
 

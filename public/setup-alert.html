@@ -9,13 +9,18 @@
 <style>
   body { font-family: Arial,sans-serif; margin: 20px; background: #f5f6fa; color: #222; position: relative; }
   h2 { margin-bottom: 20px; }
-  .container { display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; }
-  .movie-card { display: flex; flex-direction: column;margin-top: 20px; width: 245px; border-radius: 8px; overflow: hidden; box-shadow: 0 6px 18px rgba(15,23,42,0.08); background: #fff; }
+  .container {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start; /* keep items aligned at the top */
+  flex-wrap: wrap;
+}
+  .movie-card { display: flex; flex-direction: column; width: 245px; border-radius: 8px; overflow: hidden; box-shadow: 0 6px 18px rgba(15,23,42,0.08); background: #fff; }
   .movie-card img { width: 100%; height: 335px; object-fit: cover; background: #ddd; }
   .card-body { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
   .movie-title { font-size: 18px; font-weight: 600; }
   .movie-sub { font-size: 14px; color: #666; }
-  .alert-form { display: flex; flex-direction: column; gap: 15px; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); width: 245px; }
+  .alert-form { display: flex; flex-direction: column; gap: 15px; background: #fff; padding: 21px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); width: 250px; }
   .alert-form label { font-weight: 500; font-size: 14px; margin-bottom: 4px; }
   .alert-form input { padding: 10px 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; outline: none; transition: all 0.2s ease; background: #fff; box-shadow: inset 0 1px 3px rgba(0,0,0,0.08); }
   .alert-form input:hover { border-color: #ff3b3b; }
@@ -23,8 +28,29 @@
   .alert-form button { width: 100%; padding: 10px 0; border-radius: 6px; border: none; font-size: 14px; font-weight: 600; background: #ff3b3b; color: #fff; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(255,59,59,0.2); }
   .alert-form button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255,59,59,0.25); }
 
+
+  /* Modal styles */
+  .modal {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 999;
+  }
+  .modal-content {
+    background: #fff; padding: 20px; border-radius: 8px; width: 320px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  }
+  .modal-content h3 { margin-top: 0; }
+  .modal-content select {
+    width: 100%; margin-bottom: 15px; padding: 8px; border-radius: 6px; border: 1px solid #ccc;
+  }
+  .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; }
+  .modal-buttons button {
+    padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer;
+  }
+  .close-btn { background: #ccc; }
+  .save-btn { background: #ff3b3b; color: #fff; }
+
   /* Top-right buttons */
-  .top-buttons { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; }
+  .top-buttons { position: absolute;  right: 10px; display: flex; gap: 8px; }
   .top-buttons button { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s ease; }
   .logout-btn { background: #ff3b3b; color: #fff; }
   .reset-btn { background: #222; color: #fff; }
@@ -49,10 +75,15 @@
   <div class="alert-form">
     <label for="alertDate">Select alert date:</label>
     <input type="text" id="alertDate" placeholder="Select date" />
-
+	
+	  <!-- Language & Format Field -->
+    <label>Select Language & Format:</label>
+    <button type="button" id="openLangBtn">Choose Language & Format</button>
+    <div id="selectedLangFormat" style="font-size:13px;color:#444;"></div>
+	
     <label for="venue">Select venue:</label>
     <div style="display: flex; gap: 8px; align-items: center;">
-      <input type="text" id="venue" placeholder="Enter venue..." />
+      <input type="text" id="venue" placeholder="Search Venue" />
       <button id="searchVenueBtn" type="button" style="background-color: red; border: none; padding: 8px;"">
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="17" fill="white" viewBox="0 0 24 24">
     <path d="M10 2a8 8 0 0 1 6.32 12.906l4.387 4.387a1 1 0 0 1-1.414 1.414l-4.387-4.387A8 8 0 1 1 10 2zm0 2a6 6 0 1 0 0 12a6 6 0 0 0 0-12z"/>
@@ -63,6 +94,20 @@
     <div id="venueResults"></div>
 
     <button id="saveAlertBtn">Save Alert</button>
+	<div id="alertMessage" style="font-size: 13px; margin-top: 8px;"></div>
+  </div>
+</div>
+
+<!-- Modal for Language & Format -->
+<div class="modal" id="langModal">
+  <div class="modal-content">
+    <h3>Select Language & Format</h3>
+    <select id="languageSelect"><option value="">Loading...</option></select>
+    <select id="formatSelect"><option value="">Select format</option></select>
+    <div class="modal-buttons">
+      <button class="close-btn" id="closeModal">Cancel</button>
+      <button class="save-btn" id="saveLang">Save</button>
+    </div>
   </div>
 </div>
 
@@ -156,18 +201,191 @@ if (!selectedMovie.ctaUrl) {
   });
 }
 
+// ===== Language & Format Modal Logic =====
+const langModal = document.getElementById("langModal");
+const openLangBtn = document.getElementById("openLangBtn");
+const closeModal = document.getElementById("closeModal");
+const saveLang = document.getElementById("saveLang");
+const languageSelect = document.getElementById("languageSelect");
+const formatSelect = document.getElementById("formatSelect");
+const selectedLangFormatDiv = document.getElementById("selectedLangFormat");
+
+// open modal
+openLangBtn.addEventListener("click", async () => {
+  langModal.style.display = "flex";
+  languageSelect.innerHTML = "<option>Loading...</option>";
+  formatSelect.innerHTML = "<option>Select format</option>";
+
+  try {
+    const response = await fetch('/api/language', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ctaUrl: selectedMovie.ctaUrl })
+    });
+    const data = await response.json();
+    languageData = data;
+
+// Handle available_languages
+if (data.available_languages && Array.isArray(data.available_languages)) {
+
+  // Populate language dropdown
+  languageSelect.innerHTML = data.available_languages
+    .map(l => `<option value="${l.language}">${l.language}</option>`)
+    .join("");
+
+  // When a language is selected, populate format dropdown
+  languageSelect.onchange = () => {
+    const selectedLang = languageSelect.value;
+    const langObj = data.available_languages.find(l => l.language === selectedLang);
+
+    if (langObj && langObj.formats && Array.isArray(langObj.formats)) {
+      formatSelect.innerHTML = langObj.formats
+        .map(f => `<option value="${f.eventCode}">${f.dimension}</option>`)
+        .join("");
+    } else {
+      formatSelect.innerHTML = "<option disabled>No formats available</option>";
+    }
+  };
+
+  // Trigger initial population for the first language
+  if (data.available_languages.length > 0) {
+    languageSelect.value = data.available_languages[0].language;
+    const firstLangFormats = data.available_languages[0].formats || [];
+    formatSelect.innerHTML = firstLangFormats
+      .map(f => `<option value="${f.eventCode}">${f.dimension}</option>`)
+      .join("");
+  }
+}
+    // Handle preferred_languages + preferred_formats
+    else if (data.preferred_languages && data.preferred_formats) {
+      languageSelect.innerHTML = data.preferred_languages
+        .map(l => `<option value="${l}">${l}</option>`).join("");
+      formatSelect.innerHTML = data.preferred_formats
+        .map(f => `<option value="${f}">${f}</option>`).join("");
+    }
+  } catch (err) {
+    console.error("Error fetching languages:", err);
+    languageSelect.innerHTML = "<option>Error loading data</option>";
+  }
+});
+
+closeModal.addEventListener("click", () => langModal.style.display = "none");
+
+saveLang.addEventListener("click", () => {
+  selectedLang = languageSelect.value;
+  selectedFormat = formatSelect.options[formatSelect.selectedIndex]?.text || "";
+  if (!selectedLang || !selectedFormat) {
+    alert("Please select both language and format.");
+    return;
+  }
+  selectedLangFormatDiv.textContent = `${selectedLang} - ${selectedFormat}`;
+  langModal.style.display = "none";
+});
+
+
+// Save Alert button
 // Save Alert button
 document.getElementById("saveAlertBtn").addEventListener("click", () => {
-  const alertDate = alertInput.value;
-  const venue = document.getElementById("venue").value;
+  const alertDateRaw = alertInput.value;
+  const venueInputEl = document.getElementById("venue");
 
-  if (!alertDate) return alert("Please select alert date.");
-  if (!venue) return alert("Please enter venue.");
+  // Reset previous error styles
+  alertInput.style.borderColor = "#ccc";
+  venueInputEl.style.borderColor = "#ccc";
+  openLangBtn.style.borderColor = "";
 
-  const alertData = { ...selectedMovie, alertDate, venue };
-  console.log("Alert set:", alertData);
-  alert("✅ Alert set successfully!");
+  let hasError = false;
+
+  // Highlight missing fields
+  if (!alertDateRaw) {
+    alertInput.style.borderColor = "red";
+    hasError = true;
+  }
+  if (!selectedLang) {
+    openLangBtn.style.borderColor = "red";
+    hasError = true;
+  }
+  if (!venueInputEl.value) {
+    venueInputEl.style.borderColor = "red";
+    hasError = true;
+  }
+
+  if (hasError) return; // stop if any field is missing
+
+  // Convert date to YYYYMMDD
+  const [year, monthStr, day] = alertDateRaw.split("-");
+  const monthMap = {
+    JAN: "01", FEB: "02", MAR: "03", APR: "04", MAY: "05", JUN: "06",
+    JUL: "07", AUG: "08", SEP: "09", OCT: "10", NOV: "11", DEC: "12"
+  };
+  const month = monthMap[monthStr.toUpperCase()] || "01";
+  const formattedDate = `${year}${month}${day.padStart(2, "0")}`;
+
+  // Determine event code
+  let eventCode = null;
+  let tempEventCode = null;
+
+  if (languageData?.available_languages) {
+    const langObj = languageData.available_languages.find(l => l.language === selectedLang);
+    if (langObj) {
+      const fmtObj = langObj.formats.find(f => f.dimension === selectedFormat);
+      if (fmtObj) eventCode = fmtObj.eventCode;
+    }
+  } else if (languageData?.preferred_languages) {
+    tempEventCode = selectedMovie.ctaUrl;
+  }
+
+  const alertData = {
+    phone: localStorage.getItem("phone"),
+    event_code: eventCode,
+    temp_event_code: tempEventCode,
+    alert_date: formattedDate, // format yyyymmdd
+    venue: venueInputEl.value,
+    lang: selectedLang,
+    format: selectedFormat
+  };
+
+  // Send to backend
+const alertMessageEl = document.getElementById("alertMessage");
+fetch("/api/save-alert", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(alertData)
+})
+.then(res => res.json())
+.then(data => {
+  if (data.success) {
+    // Highlight fields green
+    alertInput.style.borderColor = "#0f0";
+    venueInputEl.style.borderColor = "#0f0";
+    openLangBtn.style.borderColor = "#0f0";
+
+    // Show inline success message
+    alertMessageEl.innerHTML = '<span style="color: green;">✅ Alert set successfully!</span>';
+
+    // Wait 2 seconds, then redirect to index.html
+    setTimeout(() => {
+      window.location.href = "index.html";
+    }, 2000);
+    // Optional: remove message after 3 seconds
+    setTimeout(() => {
+      alertMessageEl.innerHTML = "";
+    }, 3000);
+
+  } else {
+    // Show inline error message
+    alertMessageEl.innerHTML = '<span style="color: red;">❌ Failed to save alert.</span>';
+  }
+})
+.catch(err => {
+  console.error(err);
+  alertMessageEl.innerHTML = '<span style="color: red;">❌ Error saving alert.</span>';
 });
+});
+
+
+
+
 
 // ===== Venue Search Button Logic =====
 const searchVenueBtn = document.getElementById("searchVenueBtn");
@@ -179,9 +397,15 @@ searchVenueBtn.addEventListener("click", async () => {
   const query = venueInput.value.trim();
   venueResultsDiv.innerHTML = "";
 
-  if (!query) {
-    return alert("Please enter a venue to search.");
-  }
+if (!query) {
+  venueInput.style.borderColor = "red";  // highlight field
+  venueResultsDiv.innerHTML = '<span style="color: red; font-size: 14px;">Please enter a venue to search.</span>'; 
+  return; // stop execution
+} else {
+  venueInput.style.borderColor = "#ccc"; // reset if not empty
+  venueResultsDiv.innerHTML = ""; // clear previous messages
+}
+
 
   venueResultsDiv.innerHTML = "🔍 Searching...";
 

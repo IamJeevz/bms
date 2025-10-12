@@ -14,8 +14,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// Static files (after the above so it doesn’t override)
-app.use(express.static(path.join(__dirname, 'public')));
+
 
 // Routes
 app.use('/api', require('./routes/auth'));
@@ -26,6 +25,11 @@ app.use('/api', require('./routes/forgotPassword'));
 app.use('/api', require('./routes/resetPassword'));
 app.use('/api', require('./routes/verify-otp'));
 app.use('/api', require('./routes/venue'));
+app.use('/api', require('./routes/languages'));
+app.use('/api', require('./routes/save-alert'));
+
+// Static files (after the above so it doesn’t override)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Start Server
 app.listen(PORT, () => console.log(`?? Server running on http://localhost:${PORT}`));

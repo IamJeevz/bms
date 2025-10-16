@@ -1,24 +1,23 @@
-const mysql = require('mysql2');
+// db.js
+const mongoose = require('mongoose');
 
-const db = mysql.createConnection({
-  host: 'sql12.freesqldatabase.com',
-  user: 'sql12802756',
-  password: 'bWdAele3Ud',
-  database: 'sql12802756',
-  port: 3306,
-  // added new wait 
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
+// MongoDB connection URI
+const uri = "mongodb+srv://jeevz:Alohomora6462@bms.5s9vxdh.mongodb.net/bms?retryWrites=true&w=majority&appName=bms";
 
-// connect
-db.connect(err => {
-  if (err) console.error('MySQL connection failed:', err);
-  else console.log('✅ Connected to MySQL');
-});
+// Function to connect to MongoDB
+const connectDB = async () => {
+  try {
+    await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // avoid hanging connections
+    });
+    console.log('✅ Connected to MongoDB');
+  } catch (err) {
+    console.error('❌ MongoDB connection failed:', err.message);
+    process.exit(1); // Exit if DB connection fails
+  }
+};
 
-// wrap with promise
-const promiseDb = db.promise();
-
-module.exports = promiseDb;
+// Export both mongoose and connect function
+module.exports = { mongoose, connectDB };

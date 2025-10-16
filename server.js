@@ -4,8 +4,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // DB
-const db = require('./db');
+const { connectDB } = require('./db');
 
+connectDB();
 // Middleware
 app.use(express.json());
 

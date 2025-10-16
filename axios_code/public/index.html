@@ -1,18 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>City Selector</title>
-  <style>
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	  <meta charset="UTF-8">
+	  <title>City Selector</title>
+	  <title>City Selector</title>
+	    <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 2rem;
-      background: #f7f6fa;
+      margin: 20px;
+      background: #f5f6fa;
+      color: #222;
       position: relative;
     }
-    h2 { margin-bottom: 1rem; }
-    h3 { margin: 10px 0 5px 0; font-size: 16px; }
-    .search-container { position: relative; width: 320px; margin-top: 20px; }
+
+    h2 { margin-bottom: 12px; }
+
+    /* Top-right buttons */
+    .top-buttons {
+      position: absolute;
+      top: 0px;
+      right: 10px;
+      display: flex;
+      gap: 8px;
+    }
+    .top-buttons button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .logout-btn { background: #ff3b3b; color: #fff; }
+    .reset-btn { background: #222; color: #fff; }
+    .top-buttons button:hover { transform: translateY(-2px); opacity: 0.9; }
+
+    .search-container {
+      position: relative;
+      width: 320px;
+      margin-top: 20px;
+    }
     input {
       padding: 10px 12px;
       font-size: 16px;
@@ -22,8 +50,10 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       outline: none;
       transition: border 0.2s;
+      margin-bottom: 20px;
     }
     input:focus { border-color: #007bff; }
+
     ul {
       list-style: none;
       padding: 0;
@@ -45,147 +75,135 @@
     }
     li:hover, li.active { background: #007bff; color: #fff; }
 
-    /* Top-right buttons */
-    .top-buttons {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      display: flex;
-      gap: 8px;
-    }
-    .top-buttons button {
-      padding: 8px 12px;
-      border: none;
+    .top-cities { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .top-cities button {
+      padding: 6px 12px;
       border-radius: 6px;
+      border: 1px solid #ff3b3b;
+      background: #fff;
+      color: #ff3b3b;
       cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
+      font-weight: 500;
       transition: all 0.2s ease;
     }
-    .logout-btn { background: #ff3b3b; color: #fff; }
-    .reset-btn { background: #222; color: #fff; }
-    .top-buttons button:hover { transform: translateY(-2px); opacity: 0.9; }
-
-    .top-cities { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
-    .top-cities button { padding: 6px 12px; border-radius: 6px; border: 1px solid #ff3b3b; background: #fff; color: #ff3b3b; cursor: pointer; font-weight: 500; transition: all 0.2s ease; }
     .top-cities button:hover { background: #ff3b3b; color: #fff; }
   </style>
-</head>
-<body>
+	</head>
+	<body>
 
-<div class="top-buttons">
-  <button class="reset-btn" onclick="resetPassword()">Reset Password</button>
-  <button class="logout-btn" onclick="logout()">Logout</button>
-</div>
+	<div class="top-buttons">
+	  <button class="reset-btn" onclick="resetPassword()">Reset Password</button>
+	  <button class="logout-btn" onclick="logout()">Logout</button>
+	</div>
 
-<h2>👇 Select Your City</h2>
+	<h2>👇 Select Your City</h2>
 
-<!-- Top Cities Grid -->
+	<!-- Top Cities Grid -->
 
-<div id="topCitiesContainer" style="margin-top: 40px; margin-bottom: 20px;">
-  <div id="topCitiesGrid" style="display:grid; gap:10px;"></div>
-</div>
+	<div id="topCitiesContainer" style="margin-top: 40px; margin-bottom: 20px;">
+	  <div id="topCitiesGrid" style="display:grid; gap:10px;"></div>
+	</div>
 
-<h2>🔎 Search Your City</h2>
-<div class="search-container">
-  <input type="text" id="searchInput" placeholder="Type city name...">
-  <ul id="suggestions"></ul>
-</div>
+	<h2>🔎 Search Your City</h2>
+	<div class="search-container">
+	  <input type="text" id="searchInput" placeholder="Type city name...">
+	  <ul id="suggestions"></ul>
+	</div>
 
-<script>
-function logout() { localStorage.clear(); window.location.replace("login.html"); }
-function resetPassword() { window.location.href = "reset-password.html"; }
-let allCities = [];
-let topCities = [];
-let currentFocus = -1;
+	<script>
+	function logout() { localStorage.clear(); window.location.replace("login.html"); }
+	function resetPassword() { window.location.href = "reset-password.html"; }
+	let allCities = [];
+	let topCities = [];
+	let currentFocus = -1;
 
-async function loadCities() {
-  try {
-    const res = await fetch('/api/cities');
-    const data = await res.json();
-    allCities = data.allCities; // For search
-    topCities = data.topCities; // For top cities display
-    displayTopCities();
-  } catch (err) {
-    console.error('Error loading cities:', err);
-  }
-}
+	async function loadCities() {
+	  try {
+		const res = await fetch('/api/cities');
+		const data = await res.json();
+		allCities = data.allCities; // For search
+		topCities = data.topCities; // For top cities display
+		displayTopCities();
+	  } catch (err) {
+		console.error('Error loading cities:', err);
+	  }
+	}
 
-function displayTopCities() {
-  const grid = document.getElementById('topCitiesGrid');
-  grid.innerHTML = '';
-  // 8 cities per row using CSS grid
-  grid.style.gridTemplateColumns = "repeat(8, 1fr)";
+	function displayTopCities() {
+	  const grid = document.getElementById('topCitiesGrid');
+	  grid.innerHTML = '';
+	  // 8 cities per row using CSS grid
+	  grid.style.gridTemplateColumns = "repeat(8, 1fr)";
 
-  topCities.forEach(city => {
-    const btn = document.createElement('button');
-    btn.textContent = city.name;
-    btn.style.padding = "8px 12px";
-    btn.style.borderRadius = "6px";
-    btn.style.border = "1px solid #ff3b3b";
-    btn.style.background = "#fff";
-    btn.style.cursor = "pointer";
-    btn.style.fontWeight = "600";
-    btn.style.textAlign = "center";
-    btn.style.overflow = "hidden";
-    btn.style.textOverflow = "ellipsis";
-    btn.style.whiteSpace = "nowrap";
-    btn.onclick = () => {
-      window.location.href = `movies.html?slug=${city.slug}&regioncode=${city.regioncode}`;
-    };
-    grid.appendChild(btn);
-  });
-}
+	  topCities.forEach(city => {
+		const btn = document.createElement('button');
+		btn.textContent = city.name;
+		btn.style.padding = "8px 12px";
+		btn.style.borderRadius = "6px";
+		btn.style.border = "1px solid #ff3b3b";
+		btn.style.background = "#fff";
+		btn.style.cursor = "pointer";
+		btn.style.fontWeight = "600";
+		btn.style.textAlign = "center";
+		btn.style.overflow = "hidden";
+		btn.style.textOverflow = "ellipsis";
+		btn.style.whiteSpace = "nowrap";
+		btn.onclick = () => {
+		  window.location.href = `movies.html?slug=${city.slug}&regioncode=${city.regioncode}`;
+		};
+		grid.appendChild(btn);
+	  });
+	}
 
-// Search suggestions (all cities)
-function showSuggestions(query) {
-  const suggestions = document.getElementById('suggestions');
-  suggestions.innerHTML = '';
-  currentFocus = -1;
-  if (!query) return;
+	// Search suggestions (all cities)
+	function showSuggestions(query) {
+	  const suggestions = document.getElementById('suggestions');
+	  suggestions.innerHTML = '';
+	  currentFocus = -1;
+	  if (!query) return;
 
-  const filtered = allCities.filter(city =>
-    city.name.toLowerCase().includes(query.toLowerCase())
-  );
+	  const filtered = allCities.filter(city =>
+		city.name.toLowerCase().includes(query.toLowerCase())
+	  );
 
-  filtered.forEach(city => {
-    const li = document.createElement('li');
-    li.textContent = city.name;
-    li.dataset.slug = city.slug;
-    li.dataset.regioncode = city.regioncode;
-    li.onclick = () => {
-      window.location.href = `movies.html?slug=${city.slug}&regioncode=${city.regioncode}`;
-    };
-    suggestions.appendChild(li);
-  });
-}
+	  filtered.forEach(city => {
+		const li = document.createElement('li');
+		li.textContent = city.name;
+		li.dataset.slug = city.slug;
+		li.dataset.regioncode = city.regioncode;
+		li.onclick = () => {
+		  window.location.href = `movies.html?slug=${city.slug}&regioncode=${city.regioncode}`;
+		};
+		suggestions.appendChild(li);
+	  });
+	}
 
-const input = document.getElementById('searchInput');
-const suggestions = document.getElementById('suggestions');
+	const input = document.getElementById('searchInput');
+	const suggestions = document.getElementById('suggestions');
 
-input.addEventListener('input', (e) => showSuggestions(e.target.value));
+	input.addEventListener('input', (e) => showSuggestions(e.target.value));
 
-input.addEventListener('keydown', (e) => {
-  let items = suggestions.getElementsByTagName('li');
-  if (!items.length) return;
-  if (e.key === "ArrowDown") { currentFocus++; addActive(items); }
-  else if (e.key === "ArrowUp") { currentFocus--; addActive(items); }
-  else if (e.key === "Enter") { e.preventDefault(); if (currentFocus > -1) items[currentFocus].click(); }
-});
+	input.addEventListener('keydown', (e) => {
+	  let items = suggestions.getElementsByTagName('li');
+	  if (!items.length) return;
+	  if (e.key === "ArrowDown") { currentFocus++; addActive(items); }
+	  else if (e.key === "ArrowUp") { currentFocus--; addActive(items); }
+	  else if (e.key === "Enter") { e.preventDefault(); if (currentFocus > -1) items[currentFocus].click(); }
+	});
 
-function addActive(items) { 
-  if (!items) return; 
-  removeActive(items); 
-  if (currentFocus >= items.length) currentFocus = 0; 
-  if (currentFocus < 0) currentFocus = items.length - 1; 
-  items[currentFocus].classList.add("active"); 
-}
-function removeActive(items) { for (let item of items) item.classList.remove("active"); }
-document.addEventListener("click", (e) => { if (!e.target.closest(".search-container")) suggestions.innerHTML = ''; });
+	function addActive(items) { 
+	  if (!items) return; 
+	  removeActive(items); 
+	  if (currentFocus >= items.length) currentFocus = 0; 
+	  if (currentFocus < 0) currentFocus = items.length - 1; 
+	  items[currentFocus].classList.add("active"); 
+	}
+	function removeActive(items) { for (let item of items) item.classList.remove("active"); }
+	document.addEventListener("click", (e) => { if (!e.target.closest(".search-container")) suggestions.innerHTML = ''; });
 
-loadCities();
-</script>
+	loadCities();
+	</script>
 
 
-</body>
-</html>
+	</body>
+	</html>

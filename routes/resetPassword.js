@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const db = require('../db'); // this exports promiseDb
+const crypto = require('crypto');
+const User = require('../models/User'); // Mongoose model
 
+// 🔹 Reset password (with current password verification)
 router.post('/reset-password', async (req, res) => {
   const { phone, currentPassword, newPassword } = req.body;
 
@@ -12,23 +14,21 @@ router.post('/reset-password', async (req, res) => {
 
   try {
     // ✅ Check if user exists
-    const [users] = await db.query('SELECT * FROM sec_user_mst WHERE phone_number = ?', [phone]);
-    if (users.length === 0) {
+    const user = await User.findOne({ phone_number: phone });
+    if (!user) {
       return res.status(400).json({ success: false, message: 'User not found' });
     }
 
-    const user = users[0];
+    // ✅ Compare current password
     const validPass = await bcrypt.compare(currentPassword, user.password);
-
     if (!validPass) {
       return res.status(400).json({ success: false, message: 'Incorrect current password' });
     }
 
-    // ✅ Hash new password
+    // ✅ Hash and update new password
     const hashedNew = await bcrypt.hash(newPassword, 10);
-
-    // ✅ Update password in DB
-    await db.query('UPDATE sec_user_mst SET password = ? WHERE phone_number = ?', [hashedNew, phone]);
+    user.password = hashedNew;
+    await user.save();
 
     return res.json({ success: true, message: 'Password reset successfully' });
   } catch (err) {
@@ -37,38 +37,42 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+
+// 🔹 Reset password (Forgot password flow)
 router.post('/reset-frg_password', async (req, res) => {
   const { phone, newPassword, token } = req.body;
 
-  if (!phone || !newPassword) {
+  if (!phone || !newPassword || !token) {
     return res.status(400).json({ success: false, message: 'Missing required fields' });
   }
 
   try {
-	  
-	const [rows] = await db.query('SELECT * FROM sec_user_mst WHERE phone_number = ? AND token = ? AND used = 0 ORDER BY user_id DESC LIMIT 1', [phone, token]);
-	const resetEntry = rows[0];
+    // ✅ Find valid token entry (not used, not expired)
+    const user = await User.findOne({
+      phone_number: phone,
+      token: token,
+      used: 0
+    }).sort({ user_id: -1 });
 
-	if (!resetEntry || new Date() > new Date(resetEntry.expires_at)) {
-    return res.status(400).json({ message: 'Invalid or expired token' });
-	}
-  
-    // ✅ Check if user exists
-    const [users] = await db.query('SELECT * FROM sec_user_mst WHERE phone_number = ?', [phone]);
-    if (users.length === 0) {
-      return res.status(400).json({ success: false, message: 'User not found' });
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Invalid token' });
     }
 
+    // ✅ Check if token expired
+    if (user.expires_at && new Date() > new Date(user.expires_at)) {
+      return res.status(400).json({ success: false, message: 'Expired token' });
+    }
 
-    // ✅ Hash new password
+    // ✅ Hash and update new password
     const hashedNew = await bcrypt.hash(newPassword, 10);
-
-    // ✅ Update password in DB
-    await db.query('UPDATE sec_user_mst SET password = ?,used = 1 WHERE phone_number = ?', [hashedNew, phone]);
+    user.password = hashedNew;
+    user.used = 1; // mark token used
+    user.token = null; // clear token (optional)
+    await user.save();
 
     return res.json({ success: true, message: 'Password reset successfully' });
   } catch (err) {
-    console.error('Reset password error:', err);
+    console.error('Reset forgot password error:', err);
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 });

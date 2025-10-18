@@ -18,7 +18,8 @@ router.post('/signup', async (req, res) => {
 
     const newUser = new User({
       phone_number: phone,
-      password: hashed
+      password: hashed,
+	  signup_health:0
     });
 
     await newUser.save();

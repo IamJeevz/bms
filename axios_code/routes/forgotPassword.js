@@ -8,7 +8,7 @@ function generateOTP() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-router.post('/forgotPassword', async (req, res) => {
+router.post('/sendOTP', async (req, res) => {
   const { phone } = req.body;
   if (!phone) return res.status(400).json({ error: "Phone number required" });
 

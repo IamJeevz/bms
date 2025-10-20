@@ -63,8 +63,34 @@
           localStorage.setItem("loggedIn", "true");
           localStorage.setItem("phone", phone);
           window.location.href = "index.html";
-        } else {
-          loginMessage.textContent = data.message || "Login failed";
+        } 
+    else if (data.message.includes("verify")) {
+  loginMessage.textContent = data.message;
+  localStorage.setItem("reset_phone", phone);
+
+  // ✅ Send OTP before redirecting
+  try {
+    const otpRes = await fetch('/api/sendOTP', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone })
+    });
+    const otpData = await otpRes.json();
+    if (!otpData.message?.includes("OTP sent")) {
+      loginMessage.textContent = "Could not send OTP. Please try again.";
+      return;
+    }
+  } catch (otpErr) {
+    console.error("OTP send error:", otpErr);
+    loginMessage.textContent = "Error sending OTP. Try again.";
+    return;
+  }
+
+  // ✅ Redirect only after OTP is sent
+  window.location.href = "signup_verify.html";
+}
+        else{
+          loginMessage.textContent = data.message || "Login Failed";
         }
       } catch (err) {
         console.error(err);

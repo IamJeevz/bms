@@ -21,14 +21,14 @@ app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/cities'));
 app.use('/api', require('./routes/movies'));
 app.use('/api', require('./routes/alerts'));
-app.use('/api', require('./routes/forgotPassword'));
+app.use('/api', require('./routes/sendOTP'));
 app.use('/api', require('./routes/resetPassword'));
 app.use('/api', require('./routes/verify-otp'));
 app.use('/api', require('./routes/venue'));
 app.use('/api', require('./routes/languages'));
 app.use('/api', require('./routes/save-alert'));
 
-// Static files (after the above so it doesn’t override)
+// Static files (after the above so it doesnï¿½t override)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Start Server

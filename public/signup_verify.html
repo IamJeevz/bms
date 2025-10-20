@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Forgot Password</title>
+  <title>Verfiy OTP</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -58,54 +58,98 @@
     .links a { color: #ff3b3b; text-decoration: none; margin: 0 8px; font-weight: 500; }
     .links a:hover { text-decoration: underline; }
 
-    .otp-container { display:none; margin-top:20px; }
+    .otp-container { margin-top: 20px; }
     .message { font-size: 14px; margin-top: 5px; }
     .message.error { color: red; }
     .message.success { color: green; }
+
+    .timer-text {
+      font-size: 14px;
+      text-align: right;
+      margin-bottom: 10px;
+      color: #555;
+    }
+
+    .resend-link {
+      display: block;
+      text-align: right;
+      font-size: 14px;
+      color: #ff3b3b;
+      cursor: pointer;
+      text-decoration: underline;
+      margin-bottom: 15px;
+    }
+    .resend-link.disabled {
+      color: #aaa;
+      pointer-events: none;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
   <div class="form-container">
-    <h2>Forgot Password</h2>
-
-    <label for="phone">Enter your Phone Number</label>
-    <input type="text" id="phone" placeholder="Phone number" />
-    <p id="otpMsg" class="message"></p> <!-- message container -->
-
-    <button id="sendOtpBtn">Send OTP</button>
+    <h2>Verify Signup</h2>
 
     <div class="otp-container">
       <label for="otpInput">Enter OTP:</label>
       <input type="text" id="otpInput" placeholder="4-digit OTP" maxlength="4">
-      <p id="otpMsgs" class="message"></p> <!-- message container -->
+      <div class="timer-text" id="timerText">Time remaining: 120s</div>
+      <span id="resendOtp" class="resend-link disabled">Resend OTP</span>
+      <p id="otpMsgs" class="message"></p>
       <button id="verifyOtpBtn">Verify OTP</button>
     </div>
 
     <div class="links">
-      <span>Remembered? <a href="login.html">Login</a></span>
+      <span>Go to Login <a href="login.html">Login</a></span>
     </div>
   </div>
 
 <script>
-const sendOtpBtn = document.getElementById('sendOtpBtn');
-const otpContainer = document.querySelector('.otp-container');
 const otpInput = document.getElementById('otpInput');
 const verifyOtpBtn = document.getElementById('verifyOtpBtn');
-const otpMsg = document.getElementById('otpMsg');
 const otpMsgs = document.getElementById('otpMsgs');
-let phoneNumber = '';
+const timerText = document.getElementById('timerText');
+const resendOtp = document.getElementById('resendOtp');
 
-// Send OTP
-sendOtpBtn.addEventListener('click', async () => {
-  phoneNumber = document.getElementById('phone').value.trim();
-  otpMsg.textContent = '';
-  otpMsg.className = 'message';
+let phoneNumber = localStorage.getItem('reset_phone');
+let timerInterval;
 
-  if (!phoneNumber) {
-    otpMsg.textContent = 'Please enter your phone number';
-    otpMsg.classList.add('error');
-    return;
-  }
+if (!phoneNumber) {
+  otpMsgs.textContent = "No phone number found. Please go back and enter your number.";
+  otpMsgs.classList.add('error');
+  verifyOtpBtn.disabled = true;
+  resendOtp.classList.add('disabled');
+} else {
+  startOtpTimer(120);
+}
+
+// Start OTP Timer
+function startOtpTimer(seconds) {
+  let timer = seconds;
+  resendOtp.classList.add('disabled');
+  resendOtp.textContent = "Resend OTP";
+
+  timerText.textContent = `Time remaining: ${timer}s`;
+  clearInterval(timerInterval);
+
+  timerInterval = setInterval(() => {
+    timer--;
+    timerText.textContent = `Time remaining: ${timer}s`;
+
+    if (timer <= 0) {
+      clearInterval(timerInterval);
+      timerText.textContent = "Time expired.";
+      resendOtp.classList.remove('disabled');
+    }
+  }, 1000);
+}
+
+// Resend OTP
+resendOtp.addEventListener('click', async () => {
+  if (resendOtp.classList.contains('disabled')) return;
+
+  otpMsgs.textContent = '';
+  otpMsgs.className = 'message';
 
   try {
     const res = await fetch('/api/sendOTP', {
@@ -117,38 +161,20 @@ sendOtpBtn.addEventListener('click', async () => {
     const data = await res.json();
 
     if (data.message && data.message.includes("OTP sent")) {
-      otpMsg.textContent = "✅ OTP sent! Check your WhatsApp.";
-      otpMsg.classList.add('success');
-      otpContainer.style.display = 'block';
-      sendOtpBtn.disabled = true;
+      otpMsgs.textContent = "✅ OTP resent! Check your WhatsApp.";
+      otpMsgs.classList.add('success');
       startOtpTimer(120);
-	  
     } else {
-      otpMsg.textContent = data.error || data.message || 'Failed to send OTP';
-      otpMsg.classList.add('error');
-      otpContainer.style.display = 'none';
+      otpMsgs.textContent = data.message || "Failed to resend OTP.";
+      otpMsgs.classList.add('error');
     }
 
-  } catch(err){
+  } catch (err) {
     console.error(err);
-    otpMsg.textContent = "Error sending OTP";
-    otpMsg.classList.add('error');
+    otpMsgs.textContent = "Error resending OTP";
+    otpMsgs.classList.add('error');
   }
 });
-
-function startOtpTimer(seconds) {
-  let timer = seconds;
-  const interval = setInterval(() => {
-    if(timer <= 0){
-      clearInterval(interval);
-      sendOtpBtn.disabled = false;
-      sendOtpBtn.textContent = "Resend OTP";
-    } else {
-      sendOtpBtn.textContent = `Resend OTP (${timer}s)`;
-      timer--;
-    }
-  }, 1000);
-}
 
 // Verify OTP
 verifyOtpBtn.addEventListener('click', async () => {
@@ -172,22 +198,19 @@ verifyOtpBtn.addEventListener('click', async () => {
     const data = await res.json();
 
     if (data.message && data.message.includes("OTP verified successfully")) {
-      otpMsgs.textContent = "✅ OTP verified! You can now reset password.";
+      otpMsgs.textContent = "✅ OTP verified! You can login now";
       otpMsgs.classList.add('success');
-      
-      // Save verified phone in localStorage for reset password page
-      localStorage.setItem('reset_phone', phoneNumber);
-	  sessionStorage.setItem('reset_token', data.token);
-      // Redirect to reset password page
+
+      sessionStorage.setItem('reset_token', data.token);
       setTimeout(() => {
-        window.location.href = 'reset-forgot-password.html';
+        window.location.href = 'login.html';
       }, 1000);
     } else {
       otpMsgs.textContent = data.message || "Invalid OTP";
       otpMsgs.classList.add('error');
     }
 
-  } catch(err){
+  } catch (err) {
     console.error(err);
     otpMsgs.textContent = "Error verifying OTP";
     otpMsgs.classList.add('error');

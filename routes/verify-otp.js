@@ -37,7 +37,7 @@ router.post('/verify-otp', async (req, res) => {
     const token = crypto.randomBytes(32).toString('hex');
     user.token = token;
     user.used = false;
-
+    user.signup_health = true;
     await user.save();
 
     return res.json({

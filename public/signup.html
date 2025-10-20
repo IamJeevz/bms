@@ -95,7 +95,7 @@
     <input type="password" id="password" placeholder="Enter password" />
     <label for="confirmPassword">Confirm Password</label>
     <input type="password" id="confirmPassword" placeholder="Confirm password" />
-    <button id="signupBtn">Sign Up</button>
+    <button id="signupBtn">Send OTP</button>
 
     <div class="links">
       <span>Already have an account? <a href="login.html">Back to Login</a></span>
@@ -103,33 +103,59 @@
   </div>
 
   <script>
-    const signupBtn = document.getElementById('signupBtn');
-    signupBtn.addEventListener('click', async () => {
-      const phone = document.getElementById('phone').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const confirmPassword = document.getElementById('confirmPassword').value.trim();
-      if(!phone || !password || !confirmPassword) return alert("Please fill all fields");
-      if(password !== confirmPassword) return alert("Passwords do not match");
+  const signupBtn = document.getElementById('signupBtn');
 
-      try {
-        const res = await fetch('/api/signup', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ phone, password })
-        });
+  signupBtn.addEventListener('click', async () => {
+    const phone = document.getElementById('phone').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const confirmPassword = document.getElementById('confirmPassword').value.trim();
 
-        const data = await res.json();
-        if(data.success){
-          alert("Signup successful! Please login.");
-          window.location.href = "login.html";
-        } else {
-          alert(data.message || "Signup failed");
-        }
-      } catch(err) {
-        console.error(err);
-        alert("Error during signup");
+    if (!phone || !password || !confirmPassword) {
+      return alert("Please fill all fields");
+    }
+
+    if (password !== confirmPassword) {
+      return alert("Passwords do not match");
+    }
+
+    try {
+      // Step 1: Sign up the user
+      const signupRes = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password })
+      });
+
+      const signupData = await signupRes.json();
+
+      if (!signupData.success) {
+        return alert(signupData.message || "Signup failed");
       }
-    });
-  </script>
+
+      // Step 2: Save phone to localStorage for OTP verification page
+      localStorage.setItem('reset_phone', phone);
+
+      // Step 3: Send OTP after signup
+      const otpRes = await fetch('/api/sendOTP', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+
+      const otpData = await otpRes.json();
+
+      if (otpData.message && otpData.message.includes("OTP sent")) {
+        alert("OTP has been sent to your WhatsApp! Please verify.");
+        window.location.href = "signup_verify.html";
+      } else {
+        alert(otpData.message || "Failed to send OTP");
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong. Please try again.");
+    }
+  });
+</script>
 </body>
 </html>

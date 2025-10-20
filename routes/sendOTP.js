@@ -9,7 +9,7 @@ function generateOTP() {
 }
 
 // ---------------------- FORGOT PASSWORD ----------------------
-router.post('/forgotPassword', async (req, res) => {
+router.post('/sendOTP', async (req, res) => {
   const { phone } = req.body;
 
   if (!phone) {

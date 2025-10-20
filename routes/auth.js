@@ -19,7 +19,7 @@ router.post('/signup', async (req, res) => {
     const newUser = new User({
       phone_number: phone,
       password: hashed,
-	  signup_health:0
+	    signup_health:0
     });
 
     await newUser.save();
@@ -33,22 +33,34 @@ router.post('/signup', async (req, res) => {
 // ---------------------- LOGIN ----------------------
 router.post('/login', async (req, res) => {
   const { phone, password } = req.body;
-  if (!phone || !password)
+
+  if (!phone || !password) {
     return res.status(400).json({ success: false, message: 'Missing fields' });
+  }
 
   try {
     const user = await User.findOne({ phone_number: phone });
-    if (!user)
+
+    if (!user) {
       return res.status(400).json({ success: false, message: 'User not found' });
+    }
 
     const validPass = await bcrypt.compare(password, user.password);
-    if (!validPass)
+    if (!validPass) {
       return res.status(400).json({ success: false, message: 'Incorrect password' });
+    }
 
-    res.json({ success: true, message: 'Login successful' });
+    // ✅ Check if signup is completed
+    if (!user.signup_health) {
+      return res.status(403).json({ success: false, message: 'Please verify your account before logging in.' });
+    }
+
+    // Login success
+    return res.json({ success: true, message: 'Login successful' });
+
   } catch (err) {
     console.error('Login error:', err);
-    res.status(500).json({ success: false, message: 'Database error' });
+    return res.status(500).json({ success: false, message: 'Database error' });
   }
 });
 

@@ -200,7 +200,6 @@ verifyOtpBtn.addEventListener('click', async () => {
     if (data.message && data.message.includes("OTP verified successfully")) {
       otpMsgs.textContent = "✅ OTP verified! You can login now";
       otpMsgs.classList.add('success');
-
       sessionStorage.setItem('reset_token', data.token);
       setTimeout(() => {
         window.location.href = 'login.html';

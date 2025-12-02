@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const User = require('../models/User'); // ✅ import from model
+require("dotenv").config();
+
 
 // Helper: generate 4-digit OTP
 function generateOTP() {
@@ -43,12 +45,14 @@ router.post('/sendOTP', async (req, res) => {
       text: { preview_url: false, body: `Hello, your verification code is ${otp}` }
     };
 
+	const token=process.env.TOKEN;
+	console.log(token);
     await axios.post(
       'https://graph.facebook.com/v22.0/793948707137006/messages',
       messageData,
       {
         headers: {
-          'Authorization': `Bearer EAAY5tYDyDGcBPakPJgYD8IFN44x9wC6E3lGScXxyWt7ZAuwlFp5Kk6kH7f2fXXL0qmca3y1FjIHZCyjhEzWp3R88vIHu3beaTZAiXpZAVUK5Pik6TQ7SK0oZBGV0R0dhhwvPxZCq9g35TgCLnd2idDuxCbBmlM7cHxqxRjBbTrvkOWbzm6klsZC07I0FS6uDwZDZD`,
+          'Authorization': token,
           'Content-Type': 'application/json'
         }
       }

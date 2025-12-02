@@ -1,8 +1,9 @@
 // db.js
 const mongoose = require('mongoose');
+require("dotenv").config();
 
 // MongoDB connection URI
-const uri = "mongodb+srv://jeevz:Alohomora6462@bms.5s9vxdh.mongodb.net/bms?retryWrites=true&w=majority&appName=bms";
+const uri = process.env.DB_URI;
 
 // Function to connect to MongoDB
 const connectDB = async () => {

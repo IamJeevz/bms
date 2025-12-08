@@ -14,7 +14,7 @@ router.post('/movie-details', async (req, res) => {
     return res.status(400).json({ error: 'Missing parameters' });
 
   const headers = {
-    'User-Agent': 'Mozilla/5.0',
+    'User-Agent': 'PostmanRuntime/7.49.1',
     'Accept': 'text/html',
     'Referer': 'https://in.bookmyshow.com/',
     'sec-ch-ua-platform': 'Windows',
